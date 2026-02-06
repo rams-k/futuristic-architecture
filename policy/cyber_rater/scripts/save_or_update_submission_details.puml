@@ -1,0 +1,73 @@
+@startuml
+actor User
+participant API
+participant save_or_update_submission_details
+participant getreqiured_params_for_quote_ssic_submission
+participant get_missing_params
+participant add_insured
+participant update_insured
+participant add_submission_new_with_insured_id_db
+participant add_quote_new_db
+participant update_broker_db
+participant add_quote_data_premium_estimate_db
+participant add_general_info
+participant update_underwriter_by_quote
+participant remove_general_info_db
+participant update_quote_db
+participant update_quote_data_premium_estimate_db
+participant update_quote_additional_data_to_process
+participant set_subjectives_for_gl_quote_at_creation
+participant add_vehicle_data
+participant update_vehicle_data
+
+User -> API : POST /save_or_update_submission_details
+API -> save_or_update_submission_details : save_or_update_submission_details(request)
+save_or_update_submission_details -> getreqiured_params_for_quote_ssic_submission : Get required params
+save_or_update_submission_details -> get_missing_params : Check missing params
+
+alt Missing params
+    save_or_update_submission_details -> API : Return Response (missing data)
+else No missing params
+    alt insured_id == -1
+        save_or_update_submission_details -> add_insured : Add insured
+    else
+        save_or_update_submission_details -> update_insured : Update insured
+    end
+
+    alt quote_id == -1
+        alt submission_id == -1
+            save_or_update_submission_details -> add_submission_new_with_insured_id_db : Add submission
+        end
+        save_or_update_submission_details -> add_quote_new_db : Add quote
+        alt quote_id > -1 and application_type_id == 483 and number_of_drivers in insuredInfo
+            save_or_update_submission_details -> update_broker_db : Update broker
+        end
+        save_or_update_submission_details -> add_quote_data_premium_estimate_db : Save quote data
+        save_or_update_submission_details -> add_general_info : Add general info
+        save_or_update_submission_details -> update_underwriter_by_quote : Update underwriter info
+    else
+        save_or_update_submission_details -> remove_general_info_db : Remove general info
+        save_or_update_submission_details -> update_quote_db : Update quote
+        save_or_update_submission_details -> update_quote_data_premium_estimate_db : Update quote data
+        save_or_update_submission_details -> add_general_info : Add general info
+        save_or_update_submission_details -> update_underwriter_by_quote : Update underwriter info
+    end
+
+    alt quote_id != -1
+        save_or_update_submission_details -> update_quote_additional_data_to_process : Update additional data
+        alt application_type_id in [499, 496, 497]
+            save_or_update_submission_details -> set_subjectives_for_gl_quote_at_creation : Set subjectives
+        end
+    end
+
+    loop For each vehicle
+        alt v.id < 1
+            save_or_update_submission_details -> add_vehicle_data : Add vehicle
+        else
+            save_or_update_submission_details -> update_vehicle_data : Update vehicle
+        end
+    end
+
+    save_or_update_submission_details -> API : Return Response (success)
+end
+@enduml

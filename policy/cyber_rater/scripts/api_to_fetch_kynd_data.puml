@@ -1,0 +1,17 @@
+@startuml
+actor User
+participant API
+participant api_to_fetch_kynd_data
+participant kynd_dropdowns
+participant fetch_pdf
+participant Response
+
+User -> API : POST /cyber_dropdowns/kynd
+API -> api_to_fetch_kynd_data : api_to_fetch_kynd_data(request)
+api_to_fetch_kynd_data -> kynd_dropdowns : Get dropdowns(payload)
+api_to_fetch_kynd_data -> fetch_pdf : Get PDF info(payload)
+api_to_fetch_kynd_data -> Response : Return Response({"pdfInfo": pdf_info, "result": result}, status)
+alt Exception
+    api_to_fetch_kynd_data -> Response : Return Response({"error": str(e)}, status=500)
+end
+@enduml

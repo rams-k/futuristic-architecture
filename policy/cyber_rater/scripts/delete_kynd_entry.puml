@@ -1,0 +1,19 @@
+@startuml
+actor User
+participant API
+participant delete_kynd_entry
+participant execute_postgres
+participant Response
+
+User -> API : DELETE /cyber_dropdowns/kynd_document/<id>/
+API -> delete_kynd_entry : delete_kynd_entry(request, id)
+delete_kynd_entry -> execute_postgres : Execute DELETE query
+alt decision == "pass"
+    delete_kynd_entry -> Response : Return Response({"msg": "Succesfully deleted the entry"}, status=200)
+else
+    delete_kynd_entry -> Response : Return Response({"msg": "Unable to delete the entry"}, status=500)
+end
+alt Exception
+    delete_kynd_entry -> Response : Return Response({"error": str(e)}, status=500)
+end
+@enduml

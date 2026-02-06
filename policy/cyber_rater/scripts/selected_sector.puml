@@ -1,0 +1,13 @@
+@startuml
+actor User
+participant API
+participant selected_sector
+participant cyber_naic_dropdowns
+participant Response
+
+User -> API : GET /selected_sector?sectors=...
+API -> selected_sector : selected_sector(request)
+selected_sector -> request.GET : Get "sectors" parameter
+selected_sector -> cyber_naic_dropdowns : Filter NAIC codes(sector_str)
+selected_sector -> Response : Return Response({"naic_codes": filtered}, status=200)
+@enduml

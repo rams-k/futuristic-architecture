@@ -1,0 +1,23 @@
+@startuml
+actor User
+participant API
+participant cyberAddSubjectiveQuestionsAPI.post
+participant cyberAddSubjectiveQuestionsAPI.get
+participant return_response
+
+User -> API : POST /cyberAddSubjectiveQuestionsAPI
+API -> cyberAddSubjectiveQuestionsAPI.post : post(request)
+alt Exception
+    cyberAddSubjectiveQuestionsAPI.post -> return_response : Return error response (status 500)
+else Success
+    cyberAddSubjectiveQuestionsAPI.post -> return_response : Return success response (status 200)
+end
+
+User -> API : GET /cyberAddSubjectiveQuestionsAPI
+API -> cyberAddSubjectiveQuestionsAPI.get : get(request)
+alt Exception
+    cyberAddSubjectiveQuestionsAPI.get -> return_response : Return error response (status 500)
+else Success
+    cyberAddSubjectiveQuestionsAPI.get -> return_response : Return success response (status 200)
+end
+@enduml

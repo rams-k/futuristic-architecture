@@ -1,0 +1,13 @@
+@startuml
+actor User
+participant API
+participant api_to_fetch_cyber_retention_amounts
+participant cyber_retention_as_per_limits_and_revenue
+participant Response
+
+User -> API : POST /fetch_retention/v1
+API -> api_to_fetch_cyber_retention_amounts : api_to_fetch_cyber_retention_amounts(request)
+api_to_fetch_cyber_retention_amounts -> request.data : Get payload
+api_to_fetch_cyber_retention_amounts -> cyber_retention_as_per_limits_and_revenue : Get retention data(payload)
+api_to_fetch_cyber_retention_amounts -> Response : Return Response(data, status=data["status"])
+@enduml

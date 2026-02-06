@@ -1,0 +1,66 @@
+@startuml
+actor User
+participant API
+participant get_premium_details
+participant get_missing_params
+participant getreqiured_params_for_quote_ssic_submission
+participant date_time.convert_date_string_to_specific_format
+participant get_tax_for_app_type_db
+participant get_mcca_fee_db
+participant update_quote_additional_data_to_process
+participant get_agency_commission_if_present
+participant common.finalise_commission
+participant validate_vehicles
+participant validate_drivers
+participant get_prorater_factor
+participant rater_calculation.generic_rater
+participant rater_calculation.get_tier_and_commission
+participant remove_quote_premiums
+participant save_data_to_quotes_premium
+participant update_quote_data_premium_estimate_db
+participant update_quotes_json_submit_data_return_premium
+participant get_submission_error_codes
+participant get_state_city_by_zipcode
+participant get_territory_code_by_zipcode
+
+User -> API : POST /get_premium_details
+API -> get_premium_details : get_premium_details(request)
+get_premium_details -> getreqiured_params_for_quote_ssic_submission : Get required params
+get_premium_details -> get_missing_params : Check missing params
+alt Missing params
+    get_premium_details -> API : Return Response (missing params)
+else No missing params
+    get_premium_details -> date_time.convert_date_string_to_specific_format : Convert effective/expiry date
+    get_premium_details -> get_tax_for_app_type_db : Get taxes
+    get_premium_details -> get_mcca_fee_db : Get MCCA fee
+    get_premium_details -> update_quote_additional_data_to_process : Update additional data
+    get_premium_details -> get_agency_commission_if_present : Get agency commission
+    get_premium_details -> common.finalise_commission : Finalise commission
+    get_premium_details -> validate_vehicles : Validate vehicles
+    alt Vehicle validation errors
+        get_premium_details -> API : Return Response (vehicle validation errors)
+    else
+        get_premium_details -> validate_drivers : Validate drivers
+        alt Driver validation errors
+            get_premium_details -> API : Return Response (driver validation errors)
+        else
+            alt rater_type == "Generic"
+                get_premium_details -> get_prorater_factor : Get prorater factor
+                get_premium_details -> rater_calculation.generic_rater : Generic rater calculation
+                get_premium_details -> rater_calculation.get_tier_and_commission : Get tier and commission
+                get_premium_details -> remove_quote_premiums : Remove premiums
+                get_premium_details -> save_data_to_quotes_premium : Save premium data
+                get_premium_details -> update_quote_data_premium_estimate_db : Update premium estimate
+                get_premium_details -> update_quotes_json_submit_data_return_premium : Update submit data
+                get_premium_details -> API : Return Response (generic premium result)
+            else
+                get_premium_details -> get_submission_error_codes : Get error codes
+                get_premium_details -> get_state_city_by_zipcode : Get state/city by zip
+                get_premium_details -> get_territory_code_by_zipcode : Get territory code
+                ...existing code for detailed premium calculation...
+                get_premium_details -> API : Return Response (detailed premium result)
+            end
+        end
+    end
+end
+@enduml

@@ -1,0 +1,23 @@
+@startuml
+actor User
+participant API
+participant api_to_fetch_kynd_document
+participant request.query_params
+participant parse_bool
+participant post_to_json
+participant Response
+
+User -> API : GET /cyber_dropdowns/kynd_document/
+API -> api_to_fetch_kynd_document : api_to_fetch_kynd_document(request)
+api_to_fetch_kynd_document -> request.query_params : Get quote_id, domain, all
+api_to_fetch_kynd_document -> parse_bool : Parse "all" parameter
+alt quote_id missing
+    api_to_fetch_kynd_document -> Response : Return Response({"error": "quote_id is required"}, status=400)
+else
+    api_to_fetch_kynd_document -> post_to_json : Fetch document(s) from DB
+    api_to_fetch_kynd_document -> Response : Return Response({"data": post_to_json(query)}, status=200)
+    alt Exception
+        api_to_fetch_kynd_document -> Response : Return Response({"msg": "could not fetch the document", "error": str(e)}, status=404)
+    end
+end
+@enduml

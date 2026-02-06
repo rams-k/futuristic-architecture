@@ -1,0 +1,20 @@
+@startuml
+actor User
+participant API
+participant api_to_fetch_dropdowns
+participant common_limits
+participant common_coverages
+participant insuring_aggreements_dropdowns
+participant endorsement_dropdowns
+participant cyber_naic_sector_dropdowns
+participant Response
+
+User -> API : GET /api_to_fetch_dropdowns
+API -> api_to_fetch_dropdowns : api_to_fetch_dropdowns(self)
+api_to_fetch_dropdowns -> common_limits : Get common limits
+api_to_fetch_dropdowns -> common_coverages : Get common coverages
+api_to_fetch_dropdowns -> insuring_aggreements_dropdowns : Get insuring agreements
+api_to_fetch_dropdowns -> endorsement_dropdowns : Get endorsements
+api_to_fetch_dropdowns -> cyber_naic_sector_dropdowns : Get class of business
+api_to_fetch_dropdowns -> Response : Return Response(return_dict, status=200)
+@enduml

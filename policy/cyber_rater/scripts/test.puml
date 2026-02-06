@@ -1,0 +1,13 @@
+@startuml
+participant Client
+participant DRF
+participant api_that_tests_cyber_static_data
+participant cyber_rater_static_data
+ 
+Client -> DRF: POST /api_that_tests_cyber_static_data
+DRF -> api_that_tests_cyber_static_data: Call function
+api_that_tests_cyber_static_data -> api_that_tests_cyber_static_data: Extract "table" from request.data
+api_that_tests_cyber_static_data -> cyber_rater_static_data: Lookup [table]
+api_that_tests_cyber_static_data -> DRF: Return Response(data)
+DRF -> Client: Send response
+@enduml

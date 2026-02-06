@@ -1,0 +1,20 @@
+@startuml
+actor User
+participant API
+participant api_to_fetch_cyber_premium
+participant fetch_all_data
+participant convert_nested
+participant logger
+participant Response
+
+User -> API : POST /api_to_fetch_cyber_premium
+API -> api_to_fetch_cyber_premium : api_to_fetch_cyber_premium(request)
+api_to_fetch_cyber_premium -> logger : logger.info("API called")
+api_to_fetch_cyber_premium -> fetch_all_data : fetch_all_data(payload)
+api_to_fetch_cyber_premium -> convert_nested : convert_nested(fetch_all_data result)
+api_to_fetch_cyber_premium -> Response : Return Response(response_data, status_code)
+alt Exception
+    api_to_fetch_cyber_premium -> logger : logger.error(str(e))
+    api_to_fetch_cyber_premium -> Response : Return Response({"error": "Internal server error"}, 500)
+end
+@enduml

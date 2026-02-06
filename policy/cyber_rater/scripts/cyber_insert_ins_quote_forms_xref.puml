@@ -1,0 +1,38 @@
+@startuml
+actor User
+participant "cyber_insert_ins_quote_forms_xref" as API
+participant "json.loads"
+participant "get_active_quote_alerts"
+participant "get_quote_data_from_history"
+participant "add_and_update_quote_alerts"
+participant "insert_cyber_ins_quote_forms_xref"
+participant "Response"
+
+User -> API : POST /cyber_insert_ins_quote_forms_xref
+API -> json.loads : Parse request.body
+API -> API : Loop over form_ids
+API -> API : Replace '&amp;' in text_field_value
+
+API -> json.dumps : Serialize data
+API -> get_active_quote_alerts : Get alerts for quote_id
+API -> API : Extract exisiting_alerts, master_alerts
+
+alt forms_updated in jdata and data['forms_updated'] is True
+    API -> get_quote_data_from_history : Fetch quote history
+    API -> API : Extract quote_submit_data
+    API -> API : Loop over master_alerts
+    API -> API : Set approval_required_from, approval_status
+    API -> add_and_update_quote_alerts : Update alerts
+end
+
+API -> insert_cyber_ins_quote_forms_xref : Save form data
+API -> API : Set response_body['data'], status, message
+
+alt Exception occurs
+    API -> API : Set response_body['status'] = 0
+    API -> API : Set response_body['statusCode'] = 400
+    API -> API : Set response_body['error'], message
+end
+
+API -> Response : Return response_body
+@enduml

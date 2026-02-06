@@ -1,0 +1,19 @@
+@startuml
+actor User
+participant API
+participant get_cyber_uw_debit_credit
+participant cyber_schedule_rating_dropdowns
+participant Response
+
+User -> API : GET /get_cyber_uw_debit_credit
+API -> get_cyber_uw_debit_credit : get_cyber_uw_debit_credit(request)
+get_cyber_uw_debit_credit -> cyber_schedule_rating_dropdowns : Get schedule rating dropdowns
+alt Data found
+    get_cyber_uw_debit_credit -> Response : Return Response(data, status=200)
+else No data found
+    get_cyber_uw_debit_credit -> Response : Return Response("No data found", status=404)
+end
+alt Exception
+    get_cyber_uw_debit_credit -> Response : Return Response(error, status=500)
+end
+@enduml

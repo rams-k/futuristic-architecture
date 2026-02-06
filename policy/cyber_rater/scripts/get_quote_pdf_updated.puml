@@ -1,0 +1,76 @@
+@startuml
+actor User
+participant "API: get_quote_pdf_updated"
+participant "json.loads"
+participant "get_quote_data_from_history"
+participant "get_udf_quote_forms"
+participant "get_formatted_conditions"
+participant "get_risk_company_lob_agency_details"
+participant "get_market_company_by_id"
+participant "common.fetch_package_cost"
+participant "udf_get_form_master_by_ids_for_*"
+participant "get_policy_insurance_documents_common_function"
+participant "generate_unique_string_id"
+participant "generate_merged_pdf_v2"
+participant "pdf_utils.is_pdf_valid"
+participant "log_policy_error"
+participant "upload_file_to_azure"
+participant "add_policy_quote_document"
+participant "process_gl_rating_sheet"
+participant "insert_quote_proposal_rating"
+participant "DB cursor"
+participant "Response"
+
+User -> "API: get_quote_pdf_updated" : POST request
+"API: get_quote_pdf_updated" -> "json.loads" : Parse request.data
+"API: get_quote_pdf_updated" -> "get_quote_data_from_history" : Fetch quote_json_data
+
+"API: get_quote_pdf_updated" -> "get_udf_quote_forms" : Get forms info
+"API: get_quote_pdf_updated" -> "get_formatted_conditions" : Get form conditions
+
+alt documents provided
+    "API: get_quote_pdf_updated" -> "get_quote_data_from_history" : Fetch initial_quote_data
+    "API: get_quote_pdf_updated" -> "get_risk_company_lob_agency_details" : Get risk details
+    "API: get_quote_pdf_updated" -> "get_market_company_by_id" : Get market details
+    "API: get_quote_pdf_updated" -> "common.fetch_package_cost" : Calculate package cost
+
+    alt selectedForms and application_type_id matches
+        "API: get_quote_pdf_updated" -> "udf_get_form_master_by_ids_for_*" : Fetch selected forms
+        "API: get_quote_pdf_updated" -> "API: get_quote_pdf_updated" : Update documents/selectedForms
+    end
+
+    alt schedule form selected
+        "API: get_quote_pdf_updated" -> "get_policy_insurance_documents_common_function" : Fetch schedule forms
+        "API: get_quote_pdf_updated" -> "API: get_quote_pdf_updated" : Update selectedForms
+    end
+
+    "API: get_quote_pdf_updated" -> "generate_unique_string_id" : Generate hyperlink_id
+    "API: get_quote_pdf_updated" -> "generate_merged_pdf_v2" : Merge documents, generate PDF
+    "API: get_quote_pdf_updated" -> "pdf_utils.is_pdf_valid" : Validate PDF
+
+    alt PDF invalid
+        "API: get_quote_pdf_updated" -> "log_policy_error" : Log error
+        "API: get_quote_pdf_updated" -> "Response" : Return error response
+    else
+        "API: get_quote_pdf_updated" -> "upload_file_to_azure" : Upload PDF
+        alt Upload success
+            "API: get_quote_pdf_updated" -> "add_policy_quote_document" : Save document info
+            "API: get_quote_pdf_updated" -> "process_gl_rating_sheet" : Save rating sheet (optional)
+            "API: get_quote_pdf_updated" -> "insert_quote_proposal_rating" : Save proposal rating (optional)
+            "API: get_quote_pdf_updated" -> "API: get_quote_pdf_updated" : Update response fields
+        else
+            "API: get_quote_pdf_updated" -> "API: get_quote_pdf_updated" : Handle upload failure
+        end
+    end
+
+    alt preview_only != 1
+        "API: get_quote_pdf_updated" -> "DB cursor" : Update quote status in DB
+    end
+end
+
+alt Exception occurs
+    "API: get_quote_pdf_updated" -> "API: get_quote_pdf_updated" : Log exception
+end
+
+"API: get_quote_pdf_updated" -> "Response" : Return response
+@enduml

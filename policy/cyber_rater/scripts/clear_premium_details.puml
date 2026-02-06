@@ -1,0 +1,68 @@
+@startuml
+actor User
+participant API
+participant clear_premium_details
+participant retention_offering
+participant get_driver_factor_and_update_list
+participant get_ins_quotes_json_data_by_id
+participant remove_quote_premiums
+participant update_quote_status_after_rate_clear
+participant update_quote_status_after_submit
+participant get_usic_state_zone
+participant get_al_base_rate
+participant remove_general_info_db
+participant add_general_info
+participant update_underwriter_by_quote
+participant add_vehicle_data
+participant update_vehicle_data
+participant update_quote_data_premium_estimate_db
+participant add_quote_data_premium_estimate_db
+participant update_quote_additional_data_to_process
+participant udf_gl_insert_non_rating_fields_
+participant proccess_quote_alert
+
+User -> API : POST /clear_premium_details
+API -> clear_premium_details : clear_premium_details(request)
+clear_premium_details -> retention_offering : retention_offering(cyber_data)
+clear_premium_details -> get_driver_factor_and_update_list : Update driver factors
+clear_premium_details -> get_ins_quotes_json_data_by_id : Get quote JSON data
+alt clear_existing_premium == "Yes"
+    clear_premium_details -> remove_quote_premiums : Remove premiums
+    clear_premium_details -> update_quote_status_after_rate_clear : Update quote status
+end
+alt is_quote_submit == "Yes"
+    clear_premium_details -> update_quote_status_after_submit : Update quote status after submit
+end
+clear_premium_details -> get_usic_state_zone : Get AL zone
+alt radiusOfOperationsInfo.radius == "48_states"
+    clear_premium_details -> get_al_base_rate : Get AL base rate
+end
+clear_premium_details -> remove_general_info_db : Remove general info
+clear_premium_details -> add_general_info : Add general info
+clear_premium_details -> update_underwriter_by_quote : Update underwriter info
+loop For each vehicle
+    alt v.id < 1
+        clear_premium_details -> add_vehicle_data : Add vehicle
+    else
+        clear_premium_details -> update_vehicle_data : Update vehicle
+    end
+end
+alt quote_json_id > -1
+    alt clear_existing_premium == "Yes"
+        clear_premium_details -> update_quote_data_premium_estimate_db : Update premium estimate
+    else
+        clear_premium_details -> get_ins_quotes_json_data_by_id : Get quote estimate JSON
+        clear_premium_details -> update_quote_data_premium_estimate_db : Update premium estimate
+    end
+else
+    clear_premium_details -> add_quote_data_premium_estimate_db : Add premium estimate
+end
+alt quote_id != -1 and insured_id != -1
+    clear_premium_details -> update_quote_additional_data_to_process : Update additional data
+end
+alt non_rating_data exists
+    clear_premium_details -> udf_gl_insert_non_rating_fields_ : Insert non-rating fields
+end
+clear_premium_details -> proccess_quote_alert : Process quote alert
+clear_premium_details -> API : Return Response (result)
+@enduml

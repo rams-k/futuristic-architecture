@@ -1,0 +1,21 @@
+@startuml
+actor User
+participant retention_offering
+participant cyber_revenue_dropdowns
+
+User -> retention_offering : Call retention_offering(json_data)
+retention_offering -> json_data : Get annualRevenue, aggregateLimit, additionalInsuredNameNo.nacisCodeNo
+alt NAIC code missing or invalid
+    retention_offering -> User : Return error
+else
+    retention_offering -> cyber_revenue_dropdowns : Filter(aggregateLimit, annualRevenue, naic_code)
+    alt filtered is DataFrame
+        retention_offering -> filtered : Convert to dict(records)
+    else filtered is Series
+        retention_offering -> filtered : Convert to dict
+    else filtered is dict with single key
+        retention_offering -> filtered : Extract first value
+    end
+    retention_offering -> User : Return {"retention_offering": filtered}
+end
+@enduml

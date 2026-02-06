@@ -1,0 +1,18 @@
+@startuml
+actor User
+participant API
+participant cyberSubjectiveQuestionsAPI.get
+participant get_cyber_subjective_questions
+participant return_response
+
+User -> API : GET /cyberSubjectiveQuestionsAPI
+API -> cyberSubjectiveQuestionsAPI.get : get(request)
+cyberSubjectiveQuestionsAPI.get -> get_cyber_subjective_questions : Fetch questions
+alt Exception
+    cyberSubjectiveQuestionsAPI.get -> return_response : Return error response (status 500)
+else Questions found
+    cyberSubjectiveQuestionsAPI.get -> return_response : Return success response (status 200)
+else No questions
+    cyberSubjectiveQuestionsAPI.get -> return_response : Return error response (status 400)
+end
+@enduml
