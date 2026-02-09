@@ -1,0 +1,15 @@
+@startuml
+actor Client
+participant "get_agency_info (View)" as View
+participant "get_agency_details" as AgencyDB
+
+Client -> View: POST /get_agency_info
+activate View
+View -> View: json.loads(request.body.decode("utf-8"))\n(get userid)
+View -> AgencyDB: get_agency_details(userid)
+activate AgencyDB
+AgencyDB --> View: agency_info
+deactivate AgencyDB
+View -> Client: Response({agency_info: agency_info}, 200)
+deactivate View
+@enduml

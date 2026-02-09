@@ -1,0 +1,17 @@
+@startuml
+actor Client
+participant "quotes.views.DownloadQuotePDF" as API
+participant "django.conf.settings" as settings
+participant "django.core.files.File" as File
+
+Client -> API: POST /DownloadQuotePDF
+API -> settings: Get MEDIA_ROOT
+API -> API: Build path_to_file = MEDIA_ROOT + "pdf/sample.pdf"
+API -> API: open(path_to_file, 'rb')
+API -> File: File(f)
+File --> API: pdfFile
+API -> pdfFile: pdfFile.read()
+API -> API: base64.b64encode(pdfdata)
+API -> API: Build response dict
+API -> Client: Response({fileContent, ext, message}, HTTP 200)
+@enduml

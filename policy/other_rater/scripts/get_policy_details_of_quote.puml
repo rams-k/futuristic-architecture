@@ -1,0 +1,35 @@
+@startuml
+actor Client
+participant "get_policy_details_of_quote (View)" as View
+participant "get_quote_info_by_quoteid" as QuoteInfo
+participant "get_agency_info_by_userid" as AgencyInfo
+participant "get_insured_info_by_quoteid" as InsuredInfo
+participant "get_premium_details_with_class_id_by_quote" as PremiumDetails
+participant "app_type_related_data_of_quote" as AppTypeData
+
+Client -> View: POST /get_policy_details_of_quote
+activate View
+View -> View: json.loads(request.body.decode("utf-8"))\n(get quote_id)
+View -> QuoteInfo: get_quote_info_by_quoteid(quote_id)
+activate QuoteInfo
+QuoteInfo --> View: quote_info
+deactivate QuoteInfo
+View -> AgencyInfo: get_agency_info_by_userid(quote_info['user_id'])
+activate AgencyInfo
+AgencyInfo --> View: agency_info
+deactivate AgencyInfo
+View -> InsuredInfo: get_insured_info_by_quoteid(quote_info['submission_id'])
+activate InsuredInfo
+InsuredInfo --> View: insured_info
+deactivate InsuredInfo
+View -> PremiumDetails: get_premium_details_with_class_id_by_quote(quote_id)
+activate PremiumDetails
+PremiumDetails --> View: quote_premium_details
+deactivate PremiumDetails
+View -> AppTypeData: app_type_related_data_of_quote(quote_info['application_type_id'])
+activate AppTypeData
+AppTypeData --> View: app_type_data
+deactivate AppTypeData
+View -> Client: Response(app_quote_details, 200)
+deactivate View
+@enduml

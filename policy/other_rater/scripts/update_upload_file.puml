@@ -1,0 +1,31 @@
+@startuml
+actor Client
+participant "update_upload_file (View)" as View
+participant "ins_forms_master" as FormsMaster
+participant "update_uploaded_file_db" as DB
+participant "File System" as FS
+
+Client -> View: POST /update_upload_file
+activate View
+View -> View: request.data\n(get form_id, fileData)
+alt filesData present
+    View -> View: Generate file_id, file_location
+    View -> FS: base64.decodebytes\nwrite to file_location
+    FS --> View: (file written)
+end
+View -> FormsMaster: ins_forms_master(id, ..., file_location, ...)
+activate FormsMaster
+FormsMaster --> View: form_data
+deactivate FormsMaster
+View -> DB: update_uploaded_file_db(form_data)
+activate DB
+DB --> View: status
+deactivate DB
+View -> Client: Response({message: status}, 200)
+deactivate View
+
+alt Exception
+    View -> View: print(error)
+    View -> Client: Response({message: "not a post method"}, 200)
+end
+@enduml

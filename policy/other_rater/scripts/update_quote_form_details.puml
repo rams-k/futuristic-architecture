@@ -1,0 +1,25 @@
+@startuml
+actor Client
+participant "quotes.views.update_quote_form_details" as API
+participant "quotes.views.ins_forms_master" as ins_forms_master
+participant "quotes.views.update_form_details_db" as update_form_details_db
+
+Client -> API: POST /update_quote_form_details (quotes_forms, fileData)
+API -> API: Extract form, filesData from request.data
+alt filesData is not empty
+    API -> API: Generate file_id (uuid)
+    API -> API: Build file_location
+    API -> API: base64 decode filesData[0]['filecontent']
+    API -> API: Write decoded file to file_location
+end
+API -> ins_forms_master: ins_forms_master(id, form_name, ..., file_location, company_id, lob_id)
+ins_forms_master --> API: form_data
+API -> update_form_details_db: update_form_details_db(form_data)
+update_form_details_db --> API: status
+alt status != "FAIL"
+    API -> API: Build success response
+else
+    API -> API: Build failure response
+end
+API -> Client: Response(data, HTTP 200)
+@enduml

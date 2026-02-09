@@ -1,0 +1,75 @@
+@startuml premium_calculation_sequence
+
+actor User
+participant API as "api_to_fetch_cyber_premium"
+participant fetch_all_data
+participant BasicCyberdetails_q1
+participant has_liability_media
+participant ScheduleRatingCalculator
+participant collect_insuring_agreements_data
+participant fetch_all_insuring_agreements
+participant liability_calculations
+participant breach_response_calculations
+participant cyber_crime_calculations
+participant business_loss_calculations
+participant fetch_total_insuring_agreements_premiums
+participant round_value
+participant collect_endorsements_data
+participant Endorsements_fetch
+participant EndorsementPremiums_premium
+participant collect_premiums
+participant extract_numeric
+participant convert_nested
+participant HTTP_Response
+
+User -> API : POST /api_to_fetch_cyber_premium
+API -> fetch_all_data : fetch_all_data(payload)
+
+fetch_all_data -> BasicCyberdetails_q1 : fetch_basic_details_q1
+fetch_all_data -> has_liability_media : has_liability_media
+fetch_all_data -> ScheduleRatingCalculator : get_schedule_rating
+
+alt Insuring agreements present
+    fetch_all_data -> collect_insuring_agreements_data : collect_insuring_agreements_data
+    collect_insuring_agreements_data -> fetch_all_insuring_agreements : fetch_all_insuring_agreements
+
+    fetch_all_insuring_agreements -> liability_calculations : liability_calculations
+    fetch_all_insuring_agreements -> breach_response_calculations : breach_response_calculations
+    fetch_all_insuring_agreements -> cyber_crime_calculations : cyber_crime_calculations
+    fetch_all_insuring_agreements -> business_loss_calculations : business_loss_calculations
+
+    collect_insuring_agreements_data -> fetch_total_insuring_agreements_premiums : calculate_totals
+
+    collect_insuring_agreements_data -> round_value : round liability
+    collect_insuring_agreements_data -> round_value : round breach_response
+    collect_insuring_agreements_data -> round_value : round cyber_crime
+    collect_insuring_agreements_data -> round_value : round business_loss
+
+    collect_insuring_agreements_data -> round_value : apply credit/debit
+    collect_insuring_agreements_data --> fetch_all_data : insuring_agreements_dict
+else No insuring agreements
+    fetch_all_data -> fetch_all_data : initialize empty insuring_agreements
+end
+
+alt Endorsements present
+    fetch_all_data -> collect_endorsements_data : collect_endorsements_data
+    collect_endorsements_data -> Endorsements_fetch : fetch_endorsement_data
+    collect_endorsements_data -> EndorsementPremiums_premium : calculate_endorsement_premium
+    collect_endorsements_data -> collect_premiums : collect_premiums
+
+    fetch_all_data -> fetch_all_data : sum all premiums
+    fetch_all_data -> extract_numeric : extract_numeric
+    fetch_all_data -> round_value : round final premium
+else No endorsements
+    fetch_all_data -> fetch_all_data : sum insuring premiums only
+    fetch_all_data -> extract_numeric : extract_numeric
+    fetch_all_data -> round_value : round final premium
+end
+
+fetch_all_data -> fetch_all_data : set status_code
+fetch_all_data --> API : result
+
+API -> convert_nested : convert_nested
+API -> HTTP_Response : send HTTP response
+
+@enduml

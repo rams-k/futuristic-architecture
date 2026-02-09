@@ -1,0 +1,15 @@
+@startuml
+actor Client
+participant "get_ins_insured_info_by_quote_id (View)" as View
+participant "get_db_ins_insured_info_by_quote_id" as DB
+
+Client -> View: POST /get_ins_insured_info_by_quote_id
+activate View
+View -> View: json.loads(request.body.decode("utf-8"))\n(get quote_id)
+View -> DB: get_db_ins_insured_info_by_quote_id(quote_id)
+activate DB
+DB --> View: res
+deactivate DB
+View -> Client: Response({result: res[0]}, 200)
+deactivate View
+@enduml

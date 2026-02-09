@@ -1,0 +1,13 @@
+@startuml
+actor Client
+participant "quotes.views.get_city_and_state" as API
+participant "quotes.views.get_state_city_by_zipcode" as get_state_city_by_zipcode
+
+Client -> API: POST /get_city_and_state (zipcode)
+API -> API: json.loads(request.body)
+API -> API: Check/format zipcode length
+API -> get_state_city_by_zipcode: get_state_city_by_zipcode(zipcode)
+get_state_city_by_zipcode --> API: {state_garging, state_city}
+API -> API: Build response dict
+API -> Client: Response({state, city}, HTTP 200)
+@enduml

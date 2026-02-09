@@ -1,0 +1,11 @@
+@startuml
+actor Client
+participant "quotes.views.get_driver_violations" as API
+participant "quotes.views.get_driver_violations_list" as get_driver_violations_list
+
+Client -> API: POST /get_driver_violations
+API -> get_driver_violations_list: get_driver_violations_list()
+get_driver_violations_list --> API: violations list
+API -> API: Build response dict
+API -> Client: Response({violations}, HTTP 200)
+@enduml

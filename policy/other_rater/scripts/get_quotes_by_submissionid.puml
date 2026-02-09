@@ -1,0 +1,13 @@
+@startuml
+actor Client
+participant "quotes.views.get_quotes_by_submissionid" as API
+participant "quotes.views.get_quotes_by_submissionid_db" as get_quotes_by_submissionid_db
+
+Client -> API: POST /get_quotes_by_submissionid (submission_id)
+API -> API: json.loads(request.body)
+API -> API: Extract submission_id from data
+API -> get_quotes_by_submissionid_db: get_quotes_by_submissionid_db(submission_id)
+get_quotes_by_submissionid_db --> API: result
+API -> API: Build response dict
+API -> Client: Response({message: result}, HTTP 200)
+@enduml

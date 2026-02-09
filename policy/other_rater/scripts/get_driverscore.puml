@@ -1,0 +1,13 @@
+@startuml
+actor Client
+participant "quotes.views.get_driverscore" as API
+participant "quotes.views.get_driver_score" as get_driver_score
+
+Client -> API: POST /get_driverscore (violations, lockrate, ignore_lock_rate_for_points)
+API -> API: json.loads(request.body)
+API -> API: Extract violations_data, lock_rate_date, ignore_lock_rate_for_points
+API -> get_driver_score: get_driver_score(violations_data, lock_rate_date, ignore_lock_rate_for_points)
+get_driver_score --> API: points
+API -> API: Build response dict
+API -> Client: Response({points}, HTTP 200)
+@enduml

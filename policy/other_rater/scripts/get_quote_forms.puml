@@ -1,0 +1,12 @@
+@startuml
+actor Client
+participant "quotes.views.get_quote_forms" as API
+participant "quotes.views.get_quote_forms_list" as get_quote_forms_list
+
+Client -> API: GET /get_quote_forms
+API -> get_quote_forms_list: get_quote_forms_list()
+get_quote_forms_list --> API: forms list
+API -> API: Build response dict
+API -> Client: Response({forms}, HTTP 200)
+API -> Client: (on error) Response(error, HTTP 500)
+@enduml

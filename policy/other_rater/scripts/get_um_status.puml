@@ -1,0 +1,13 @@
+@startuml
+actor Client
+participant "quotes.views.get_um_status" as API
+participant "quotes.views.get_um_range_per_state" as get_um_range_per_state
+
+Client -> API: POST /get_um_status (insured_garaging_state)
+API -> API: json.loads(request.body)
+API -> API: Extract _state from data
+API -> get_um_range_per_state: get_um_range_per_state(_state)
+get_um_range_per_state --> API: UM status/range
+API -> API: Build response dict
+API -> Client: Response({status}, HTTP 200)
+@enduml

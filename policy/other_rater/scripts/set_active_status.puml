@@ -1,0 +1,17 @@
+@startuml
+actor Client
+participant "quotes.views.set_active_status" as API
+participant "quotes.views.set_active_form_status_db" as set_active_form_status_db
+
+Client -> API: POST /set_active_status (form_id)
+API -> API: json.loads(request.body)
+API -> API: Extract id from data
+API -> set_active_form_status_db: set_active_form_status_db(id)
+set_active_form_status_db --> API: status
+alt status != "FAIL"
+    API -> API: Build success response
+else
+    API -> API: Build failure response
+end
+API -> Client: Response(data, HTTP 200)
+@enduml

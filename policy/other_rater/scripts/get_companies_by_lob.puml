@@ -1,0 +1,15 @@
+@startuml
+actor Client
+participant "get_companies_by_lob (View)" as View
+participant "get_copmanys_by_lob_id" as DB
+
+Client -> View: POST /get_companies_by_lob
+activate View
+View -> View: json.loads(request.body.decode("utf-8"))\n(get lob_id)
+View -> DB: get_copmanys_by_lob_id(lob_id)
+activate DB
+DB --> View: res
+deactivate DB
+View -> Client: Response({result: res}, 200)
+deactivate View
+@enduml
