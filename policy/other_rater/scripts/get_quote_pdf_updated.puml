@@ -1,0 +1,83 @@
+@startuml
+actor Client
+participant "quotes.views.get_quote_pdf_updated" as get_quote_pdf_updated
+participant "quotes.views.get_quote_data_from_history" as get_quote_data_from_history
+participant "quotes.views.get_udf_quote_forms" as get_udf_quote_forms
+participant "quotes.views.get_formatted_conditions" as get_formatted_conditions
+participant "quotes.views.get_risk_company_lob_agency_details" as get_risk_company_lob_agency_details
+participant "quotes.views.get_market_company_by_id" as get_market_company_by_id
+participant "common.fetch_package_cost" as fetch_package_cost
+participant "quotes.views.udf_get_form_master_by_ids_for_gl_cas" as udf_gl_cas
+participant "quotes.views.udf_get_form_master_by_ids_for_gl" as udf_gl
+participant "quotes.views.udf_get_form_master_by_ids_for_mpl" as udf_mpl
+participant "quotes.views.udf_get_form_master_by_ids_for_property" as udf_property
+participant "quotes.views.udf_get_form_master_by_ids_for_SMML" as udf_SMML
+participant "quotes.views.udf_get_form_master_by_ids_for_thera" as udf_thera
+participant "quotes.views.udf_get_form_master_by_ids_for_hss" as udf_hss
+participant "quotes.views.udf_get_form_master_by_ids_for_cyber" as udf_cyber
+participant "quotes.views.udf_get_form_master_by_ids_for_digital_rater" as udf_digital_rater
+participant "quotes.views.get_policy_insurance_documents_common_function" as get_policy_docs
+participant "quotes.views.generate_unique_string_id" as generate_unique_string_id
+participant "quotes.views.generate_merged_pdf_v2" as generate_merged_pdf_v2
+participant "pdf_utils.is_pdf_valid" as is_pdf_valid
+participant "quotes.views.log_policy_error" as log_policy_error
+participant "quotes.views.upload_file_to_azure" as upload_file_to_azure
+participant "quotes.views.add_policy_quote_document" as add_policy_quote_document
+participant "quotes.views.process_gl_rating_sheet" as process_gl_rating_sheet
+participant "quotes.views.insert_quote_proposal_rating" as insert_quote_proposal_rating
+participant "Django DB" as db
+
+Client -> get_quote_pdf_updated: POST /get_quote_pdf_updated
+get_quote_pdf_updated -> get_quote_data_from_history: get_quote_data_from_history(quote_id)
+get_quote_pdf_updated -> get_udf_quote_forms: get_udf_quote_forms(application_type_id, 'PRINT QUOTE')
+get_quote_pdf_updated -> get_formatted_conditions: get_formatted_conditions()
+alt documents is not None
+    get_quote_pdf_updated -> get_quote_data_from_history: get_quote_data_from_history(quote_id)
+    get_quote_pdf_updated -> get_risk_company_lob_agency_details: get_risk_company_lob_agency_details(quote_id)
+    get_quote_pdf_updated -> get_market_company_by_id: get_market_company_by_id(market_company_id)
+    get_quote_pdf_updated -> fetch_package_cost: fetch_package_cost(quote_json_data)
+    alt selectedForms and application_type_id == 499
+        get_quote_pdf_updated -> udf_gl_cas: udf_get_form_master_by_ids_for_gl_cas(...)
+    else selectedForms and application_type_id == 496
+        get_quote_pdf_updated -> udf_gl: udf_get_form_master_by_ids_for_gl(...)
+    else selectedForms and application_type_id == 497
+        get_quote_pdf_updated -> udf_mpl: udf_get_form_master_by_ids_for_mpl(...)
+    else selectedForms and application_type_id == 492
+        get_quote_pdf_updated -> udf_property: udf_get_form_master_by_ids_for_property(...)
+    else selectedForms and application_type_id == 1091
+        get_quote_pdf_updated -> udf_SMML: udf_get_form_master_by_ids_for_SMML(...)
+    else selectedForms and application_type_id == 493
+        get_quote_pdf_updated -> udf_thera: udf_get_form_master_by_ids_for_thera(...)
+    else selectedForms and application_type_id == 485
+        get_quote_pdf_updated -> udf_hss: udf_get_form_master_by_ids_for_hss(...)
+    else selectedForms and application_type_id == 1102
+        get_quote_pdf_updated -> udf_cyber: udf_get_form_master_by_ids_for_cyber(...)
+    else selectedForms and application_type_id == 483
+        get_quote_pdf_updated -> udf_digital_rater: udf_get_form_master_by_ids_for_digital_rater(...)
+    else application_type_id in [496,499,497,1091,485,492,493,483]
+        get_quote_pdf_updated -> get_policy_docs: get_policy_insurance_documents_common_function(...)
+    end
+    get_quote_pdf_updated -> generate_unique_string_id: generate_unique_string_id()
+    get_quote_pdf_updated -> generate_merged_pdf_v2: generate_merged_pdf_v2(documents, quote_json_data, file)
+    get_quote_pdf_updated -> is_pdf_valid: is_pdf_valid(file_path)
+    alt PDF invalid
+        get_quote_pdf_updated -> log_policy_error: log_policy_error(...)
+        get_quote_pdf_updated -> Client: Response(res)
+    else PDF valid
+        get_quote_pdf_updated -> upload_file_to_azure: upload_file_to_azure(file_name, file_path)
+        alt upload_file_to_azure returns status True
+            get_quote_pdf_updated -> add_policy_quote_document: add_policy_quote_document(...)
+            alt selectSaveRatingSheet
+                get_quote_pdf_updated -> process_gl_rating_sheet: process_gl_rating_sheet(...)
+            end
+            alt application_type_id in [483, 496] and document_id
+                get_quote_pdf_updated -> insert_quote_proposal_rating: insert_quote_proposal_rating(...)
+            end
+        end
+    end
+end
+alt preview_only != 1
+    get_quote_pdf_updated -> db: dbConnection.execute("select udf_update_quotes_status(...)")
+end
+get_quote_pdf_updated -> Client: Response(res)
+@enduml

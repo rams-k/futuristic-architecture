@@ -1,0 +1,12 @@
+@startuml
+actor Client
+participant "get_all_quote_status (API View)" as View
+participant "get_all_quote_status_db" as GetStatus
+participant "Response" as DRF
+
+Client -> View: GET /get_all_quote_status
+View -> GetStatus: get_all_quote_status_db()
+GetStatus --> View: status list
+View -> DRF: Response({"result": status list}, status=200)
+DRF --> Client: JSON response
+@enduml

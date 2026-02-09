@@ -1,0 +1,17 @@
+@startuml
+actor Client
+participant "get_agencies (APIView)" as View
+participant "connections['default'].cursor()" as DB
+participant "udf_get_agencies_json_new" as UDF
+
+Client -> View: POST /get_agencies
+View -> View: Parse request body (json.loads)
+View -> DB: connections['default'].cursor()
+View -> DB: Execute query\n(select udf_get_agencies_json_new)
+DB -> UDF: udf_get_agencies_json_new(name, type, flag, agency_id)
+UDF --> DB: Return agency records
+DB --> View: Return records
+View -> View: Build result list
+View -> DB: dbConnection.close()
+View -> Client: Return Response(response_body)
+@enduml

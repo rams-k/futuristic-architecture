@@ -1,0 +1,43 @@
+@startuml
+actor User
+participant "generate_bind_pdf (API View)" as View
+participant "add_form_history" as AddFormHistory
+participant "get_quote_data_from_history" as GetQuoteDataFromHistory
+participant "common.fetch_package_cost" as FetchPackageCost
+participant "get_policy_insurance_documents_common_function" as GetPolicyDocs
+participant "generate_merged_pdf_v2" as GenerateMergedPDF
+participant "pdf_utils.is_pdf_valid" as PDFUtils
+participant "log_policy_error" as LogPolicyError
+participant "upload_file_to_azure" as UploadAzure
+participant "add_policy_quote_document" as AddPolicyDoc
+participant "update_quote_json_document_id" as UpdateQuoteJsonDoc
+participant "check_endorsement_count" as CheckEndorsementCount
+
+User -> View: POST /generate_bind_pdf (multipart)
+View -> View: Parse request.data (data, file, etc.)
+View -> AddFormHistory: add_form_history(quote_id, json_history_id, doc_ids)
+View -> GetQuoteDataFromHistory: get_quote_data_from_history(quote_id)
+View -> FetchPackageCost: fetch_package_cost(quote_json_data)
+alt application_type_id in (499,496,1091,497,485,492,493,1102)
+    View -> GetPolicyDocs: get_policy_insurance_documents_common_function(...)
+    GetPolicyDocs --> View: doc_res
+end
+View -> GenerateMergedPDF: generate_merged_pdf_v2(documents, quote_json_data, file)
+GenerateMergedPDF --> View: merge_data (file_path, agent/insured fieldnames)
+View -> PDFUtils: is_pdf_valid(file_path)
+alt PDF invalid
+    View -> LogPolicyError: log_policy_error(message, quote_id, json_history_id, created_by)
+    View --> User: Response (Binder Document Generation Failed)
+else PDF valid
+    View -> UploadAzure: upload_file_to_azure(file_name, file_path)
+    alt Upload success
+        View -> AddPolicyDoc: add_policy_quote_document(...)
+        AddPolicyDoc --> View: document_id
+        View -> UpdateQuoteJsonDoc: update_quote_json_document_id(...)
+        View -> CheckEndorsementCount: check_endorsement_count(quote_id, -1)
+        View --> User: Response (status=True, document_url, document_id, quote_info_id)
+    else Upload failed
+        View --> User: Response (status=False)
+    end
+end
+@enduml

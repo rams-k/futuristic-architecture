@@ -1,0 +1,31 @@
+@startuml
+actor Client
+participant "get_quote_details_from_history (APIView)" as View
+participant "get_quote_data_from_history" as GetQuoteData
+participant "proccess_quote_alert" as ProcessAlert
+participant "get_drivers_by_quote_db" as GetDrivers
+participant "get_vehicles_by_quote_id_db" as GetVehicles
+participant "get_quote_bind_info_db" as GetBindInfo
+participant "get_invoice_data_by_quote_id_db" as GetInvoice
+participant "add_submission_quote_details" as AddQuote
+
+Client -> View: POST /get_quote_details_from_history
+View -> View: Parse request body (json.loads)
+View -> GetQuoteData: get_quote_data_from_history(_quote_id)
+GetQuoteData --> View: Return quotes
+View -> ProcessAlert: proccess_quote_alert(quotes[0]['active_json']['quote_submit_data'], user_id)
+ProcessAlert --> View: (void)
+View -> GetQuoteData: get_quote_data_from_history(_quote_id)
+GetQuoteData --> View: Return quotes
+View -> GetDrivers: get_drivers_by_quote_db(_quote_id)
+GetDrivers --> View: Return drivers_info
+View -> GetVehicles: get_vehicles_by_quote_id_db(_quote_id)
+GetVehicles --> View: Return vehicles_info
+View -> GetBindInfo: get_quote_bind_info_db(_quote_id)
+GetBindInfo --> View: Return quote_bind_info
+View -> GetInvoice: get_invoice_data_by_quote_id_db(_quote_id)
+GetInvoice --> View: Return inv_his
+View -> AddQuote: add_submission_quote_details(_quote_id, user_id, submission_id)
+AddQuote --> View: Return add_quote
+View -> Client: Return Response(res)
+@enduml

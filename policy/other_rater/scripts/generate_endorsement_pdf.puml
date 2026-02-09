@@ -1,0 +1,34 @@
+@startuml
+actor User
+participant "generate_endorsement_pdf (API View)" as View
+participant "add_form_history" as AddFormHistory
+participant "get_quote_data_from_history" as GetQuoteDataFromHistory
+participant "get_quotes_json_data_by_id" as GetQuotesJsonDataById
+participant "common.fetch_package_cost" as FetchPackageCost
+participant "generate_merged_pdf_v2" as GenerateMergedPDF
+participant "upload_file_to_azure" as UploadAzure
+participant "add_policy_quote_document" as AddPolicyDoc
+participant "update_quote_json_document_id" as UpdateQuoteJsonDoc
+
+User -> View: POST /generate_endorsement_pdf (multipart)
+View -> View: Parse request.data (data, file, etc.)
+alt documents is not None
+    View -> AddFormHistory: add_form_history(quote_id, json_history_id, doc_ids)
+    View -> GetQuoteDataFromHistory: get_quote_data_from_history(quote_id)
+    View -> GetQuotesJsonDataById: get_quotes_json_data_by_id(json_history_id)
+    View -> FetchPackageCost: fetch_package_cost(quote_json_data, True)
+    View -> GenerateMergedPDF: generate_merged_pdf_v2(documents, quote_json_data, file, 'endorsement')
+    GenerateMergedPDF --> View: file_path
+    View -> UploadAzure: upload_file_to_azure(file_name, file_path)
+    alt Upload success
+        View -> AddPolicyDoc: add_policy_quote_document(...)
+        AddPolicyDoc --> View: document_id
+        View -> UpdateQuoteJsonDoc: update_quote_json_document_id(...)
+        View --> User: Response (status=True, document_url, document_id, quote_info_id)
+    else Upload failed
+        View --> User: Response (status=False)
+    end
+else
+    View --> User: Response (status=False)
+end
+@enduml

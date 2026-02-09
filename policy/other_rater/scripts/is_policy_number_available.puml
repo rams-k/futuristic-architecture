@@ -1,0 +1,12 @@
+@startuml
+actor User
+participant "is_policy_number_available (API View)" as View
+participant "is_policy_number_available_db" as PolicyNumberDB
+
+User -> View: POST /is_policy_number_available
+View -> View: Parse request.body (JSON)
+View -> PolicyNumberDB: is_policy_number_available_db(policy_number, quote_id, json_id)
+PolicyNumberDB --> View: availability result
+View: Build result dict
+View --> User: Response (result)
+@enduml

@@ -1,0 +1,23 @@
+@startuml
+actor Client
+participant "get_quote_search_filter_additional_data (API View)" as View
+participant "get_dropdown_data_for_quote_search_filter" as DropdownData
+participant "Response" as DRF
+
+Client -> View: GET /get_quote_search_filter_additional_data
+View -> View: request.query_params
+View -> DropdownData: get_dropdown_data_for_quote_search_filter()
+DropdownData --> View: records
+alt records found
+    alt records contain 'short_names'
+        View -> View: records['short_names'].append({'application_type_id': -99, ...})
+    end
+    View -> View: response_body['data'] = records
+else records not found
+    View -> View: response_body['status'] = 0
+    View -> View: response_body['statusCode'] = 200
+    View -> View: response_body['message'] = 'Not Found'
+end
+View -> DRF: Response(response_body, status)
+DRF --> Client: JSON response
+@enduml

@@ -1,0 +1,12 @@
+@startuml
+actor Client
+participant "update_quote_underwriter (APIView)" as View
+participant "update_quote_underwriter_db" as InternalFunc
+
+Client -> View: POST /update_quote_underwriter
+View -> View: Parse request body (json.loads)
+View -> View: Extract _quote_id, _underwriter_id
+View -> InternalFunc: update_quote_underwriter_db(_quote_id, _underwriter_id)
+InternalFunc --> View: Return _id
+View -> Client: Return Response({result: _id})
+@enduml

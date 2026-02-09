@@ -1,0 +1,10 @@
+@startuml
+actor Client
+participant "quotes.views.get_vehicles_by_quote_id" as get_vehicles_by_quote_id
+participant "quotes.views.get_vehicles_by_quote_id_db" as get_vehicles_by_quote_id_db
+participant "DRF Response" as Response
+
+Client -> get_vehicles_by_quote_id: POST /getvehiclesbyquote
+get_vehicles_by_quote_id -> get_vehicles_by_quote_id_db: get_vehicles_by_quote_id_db(quote_id)
+get_vehicles_by_quote_id -> Response: Response(data)
+@enduml

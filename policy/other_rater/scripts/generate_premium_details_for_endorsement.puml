@@ -1,0 +1,12 @@
+@startuml
+actor User
+participant "generate_premium_details_for_endorsement (API View)" as View
+participant "generate_premium_with_endorsements" as GeneratePremium
+
+User -> View: POST /generate_premium_details_for_endorsement
+View -> View: Parse request.body (JSON)
+View: Get user_info and user_id
+View -> GeneratePremium: generate_premium_with_endorsements(data, user_id)
+GeneratePremium --> View: premium details result
+View --> User: Response (premium details)
+@enduml

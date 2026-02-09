@@ -1,0 +1,10 @@
+@startuml
+actor Client
+participant "quotes.views.get_similar_quotes_of_agency" as get_similar_quotes_of_agency
+participant "quotes.views.get_all_quotes_of_agency_by_insured_name_and_dot_number" as get_all_quotes_of_agency_by_insured_name_and_dot_number
+participant "DRF Response" as Response
+
+Client -> get_similar_quotes_of_agency: POST /getsimilarquotesofagency
+get_similar_quotes_of_agency -> get_all_quotes_of_agency_by_insured_name_and_dot_number: get_all_quotes_of_agency_by_insured_name_and_dot_number(_agency_id, _insured_name, _dot_number)
+get_similar_quotes_of_agency -> Response: Response(res)
+@enduml

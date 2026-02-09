@@ -1,0 +1,16 @@
+@startuml
+actor Client
+participant "update_quote_status (APIView)" as View
+participant "udf_update_quote_status_db" as InternalFunc
+
+Client -> View: POST /updatequotestatus
+View -> View: Parse request body (json.loads)
+View -> View: Extract _quote_id, _status_id
+alt Missing parameters
+    View -> Client: Return error message
+else Valid parameters
+    View -> InternalFunc: udf_update_quote_status_db(_quote_id, _status_id, 0)
+    InternalFunc --> View: Return status
+    View -> Client: Return Response({result, msg, status})
+end
+@enduml

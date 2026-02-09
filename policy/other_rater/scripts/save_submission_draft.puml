@@ -1,0 +1,12 @@
+@startuml
+actor Client
+participant "save_submission_draft (APIView)" as View
+participant "save_submission_draft_db" as InternalFunc
+
+Client -> View: POST /save_submission_draft
+View -> View: Parse request body (json.loads)
+View -> View: Extract user_id, submission_data, insured_name, dot_number, effective_date
+View -> InternalFunc: save_submission_draft_db(submission_data, insured_name, dot_number, effective_date, user_id)
+InternalFunc --> View: Return draft_id
+View -> Client: Return Response({draft_id: draft_id})
+@enduml

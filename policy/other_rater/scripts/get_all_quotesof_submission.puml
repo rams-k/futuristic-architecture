@@ -1,0 +1,12 @@
+@startuml
+actor Client
+participant "get_all_quotesof_submission (APIView)" as View
+participant "get_all_quotes_of_submission_db" as InternalFunc
+
+Client -> View: POST /get_all_quotesof_submission
+View -> View: Parse request body (json.loads)
+View -> View: Extract submission_id, all_quote
+View -> InternalFunc: get_all_quotes_of_submission_db(submission_id, all_quote)
+InternalFunc --> View: Return result
+View -> Client: Return Response({result: res})
+@enduml

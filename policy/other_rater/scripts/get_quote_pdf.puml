@@ -1,0 +1,34 @@
+@startuml
+actor Client
+participant "quotes.views.get_quote_pdf" as get_quote_pdf
+participant "quotes.views.get_quote_data_from_history" as get_quote_data_from_history
+participant "quotes.views.get_udf_quote_forms" as get_udf_quote_forms
+participant "quotes.views.get_formatted_conditions" as get_formatted_conditions
+participant "quotes.views.get_risk_company_lob_agency_details" as get_risk_company_lob_agency_details
+participant "quotes.views.get_market_company_by_id" as get_market_company_by_id
+participant "common.fetch_package_cost" as fetch_package_cost
+participant "quotes.views.generate_merged_pdf" as generate_merged_pdf
+participant "quotes.views.upload_file_to_azure" as upload_file_to_azure
+participant "quotes.views.add_policy_quote_document" as add_policy_quote_document
+participant "quotes.views.update_quotes_json_data_pdf" as update_quotes_json_data_pdf
+participant "Django DB" as db
+
+Client -> get_quote_pdf: POST /get_quote_pdf
+get_quote_pdf -> get_quote_data_from_history: get_quote_data_from_history(quote_id)
+get_quote_pdf -> get_udf_quote_forms: get_udf_quote_forms(application_type_id, 'PRINT QUOTE')
+get_quote_pdf -> get_formatted_conditions: get_formatted_conditions()
+alt documents is not None
+    get_quote_pdf -> get_quote_data_from_history: get_quote_data_from_history(quote_id)
+    get_quote_pdf -> get_risk_company_lob_agency_details: get_risk_company_lob_agency_details(quote_id)
+    get_quote_pdf -> get_market_company_by_id: get_market_company_by_id(market_company_id)
+    get_quote_pdf -> fetch_package_cost: fetch_package_cost(quote_json_data, False)
+    get_quote_pdf -> generate_merged_pdf: generate_merged_pdf(documents, quote_json_data)
+    get_quote_pdf -> upload_file_to_azure: upload_file_to_azure(file_name, file_path)
+    alt upload_file_to_azure returns status True
+        get_quote_pdf -> add_policy_quote_document: add_policy_quote_document(quote_id, file_name, upload_url, ...)
+    end
+end
+get_quote_pdf -> db: dbConnection.execute("select udf_update_quotes_status(...)")
+get_quote_pdf -> update_quotes_json_data_pdf: update_quotes_json_data_pdf(json_history_id, quote_id, quote_estimation_json)
+get_quote_pdf -> Client: Response(res)
+@enduml

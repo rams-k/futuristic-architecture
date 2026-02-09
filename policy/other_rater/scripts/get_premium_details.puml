@@ -1,0 +1,251 @@
+@startuml
+actor Client
+participant "get_premium_details" as API
+participant "get_missing_params" as UtilMissingParams
+participant "getreqiured_params_for_quote_ssic_submission" as UtilRequiredParams
+participant "date_time.convert_date_string_to_specific_format" as UtilDateConvert
+participant "validate_vehicles" as UtilValidateVehicles
+participant "validate_drivers" as UtilValidateDrivers
+participant "get_state_city_by_zipcode" as UtilZipState
+participant "get_agency_commission_if_present" as UtilAgencyComm
+participant "common.finalise_commission" as UtilFinaliseComm
+participant "get_tax_for_general_liability" as UtilTaxGL
+participant "get_tax_for_app_type_db" as UtilTaxAppType
+participant "get_mcca_fee_db" as UtilMCCA
+participant "update_quote_additional_data_to_process" as UtilUpdateQuoteAddl
+participant "rater_calculation.get_wsic_baserate" as RaterBaseRate
+participant "rater_calculation.generic_rater" as RaterGeneric
+participant "rater_calculation.get_tier_and_commission" as RaterTierComm
+participant "remove_quote_premiums" as UtilRemoveQuotePremiums
+participant "save_data_to_quotes_premium" as UtilSaveQuotePremium
+participant "update_quote_data_premium_estimate_db" as UtilUpdateQuoteEstimate
+participant "update_quotes_json_submit_data_return_premium" as UtilUpdateQuoteSubmit
+participant "get_submission_error_codes" as UtilErrorCodes
+participant "validate_cargo_details" as UtilValidateCargo
+participant "Counter" as UtilCounter
+participant "remove_drivers" as UtilRemoveDrivers
+participant "common.add_driver_and_return_factor" as UtilAddDriverFactor
+participant "get_territory_code_by_zipcode" as UtilTerritoryCode
+participant "get_ilf_factor" as UtilILFFactor
+participant "get_lcm_factor" as UtilLCMFactor
+participant "get_rate_control_factor" as UtilRateControl
+participant "get_trailer_type_factor" as UtilTrailerType
+participant "get_usic_fmcsa_factor_json" as UtilFMCASAFactor
+participant "get_liability_limit_factor" as UtilLiabilityLimit
+participant "get_safer_factor" as UtilSaferFactor
+participant "get_years_of_experience_factor" as UtilYearsExp
+participant "get_secondary_class_factor" as UtilSecondaryClass
+participant "get_type_of_use_factor" as UtilTypeOfUse
+participant "rater_calculation.get_information_from_vehicle" as RaterVehicleInfo
+participant "rater_calculation.calculate_non_admitted_rmf" as RaterNonAdmittedRMF
+participant "get_al_base_rate" as UtilALBaseRate
+participant "get_fleet_factor" as UtilFleetFactor
+participant "get_usic_safer_factor" as UtilUSICSaferFactor
+participant "get_usic_years_of_experience_factor_json" as UtilUSICYearsExp
+participant "get_liability_factor_json" as UtilLiabilityFactorJson
+participant "rater_calculation.calculate_additional_pip" as RaterAddlPIP
+participant "get_non_owned_auto_premium" as UtilNonOwnedAutoPremium
+participant "get_hired_auto_info" as UtilHiredAutoInfo
+participant "get_udf_get_usic_gl_limit_by_id_db" as UtilGLLimitById
+participant "rater_calculation.westlake_al_calculator" as RaterWestlakeAL
+participant "rater_calculation.admitted_al_calculator" as RaterAdmittedAL
+participant "get_fleet_factor" as UtilFleetFactorCargo
+participant "get_safer_factor" as UtilSaferFactorCargo
+participant "get_usic_safer_factor" as UtilUSICSaferFactorCargo
+participant "get_usic_years_of_experience_factor_json" as UtilUSICYearsExpCargo
+participant "get_years_of_experience_factor" as UtilYearsExpCargo
+participant "get_secondary_class_factor" as UtilSecondaryClassCargo
+participant "get_type_of_use_factor" as UtilTypeOfUseCargo
+participant "rater_calculation.get_information_from_vehicle" as RaterVehicleInfoCargo
+participant "rater_calculation.calculate_non_admitted_rmf" as RaterNonAdmittedRMFCargo
+participant "get_al_base_rate" as UtilALBaseRateCargo
+participant "get_fleet_factor" as UtilFleetFactorCargo2
+participant "get_usic_safer_factor" as UtilUSICSaferFactorCargo2
+participant "get_usic_years_of_experience_factor_json" as UtilUSICYearsExpCargo2
+participant "get_liability_factor_json" as UtilLiabilityFactorJsonCargo
+participant "rater_calculation.calculate_additional_pip" as RaterAddlPIPCargo
+participant "get_non_owned_auto_premium" as UtilNonOwnedAutoPremiumCargo
+participant "get_hired_auto_info" as UtilHiredAutoInfoCargo
+participant "get_udf_get_usic_gl_limit_by_id_db" as UtilGLLimitByIdCargo
+participant "rater_calculation.westlake_al_calculator" as RaterWestlakeALCargo
+participant "rater_calculation.admitted_al_calculator" as RaterAdmittedALCargo
+participant "get_fleet_factor" as UtilFleetFactorCargo3
+participant "get_safer_factor" as UtilSaferFactorCargo3
+participant "get_usic_safer_factor" as UtilUSICSaferFactorCargo3
+participant "get_usic_years_of_experience_factor_json" as UtilUSICYearsExpCargo3
+participant "get_years_of_experience_factor" as UtilYearsExpCargo3
+participant "get_secondary_class_factor" as UtilSecondaryClassCargo3
+participant "get_type_of_use_factor" as UtilTypeOfUseCargo3
+participant "rater_calculation.get_information_from_vehicle" as RaterVehicleInfoCargo3
+participant "rater_calculation.calculate_non_admitted_rmf" as RaterNonAdmittedRMFCargo3
+participant "get_al_base_rate" as UtilALBaseRateCargo3
+participant "get_fleet_factor" as UtilFleetFactorCargo4
+participant "get_usic_safer_factor" as UtilUSICSaferFactorCargo4
+participant "get_usic_years_of_experience_factor_json" as UtilUSICYearsExpCargo4
+participant "get_liability_factor_json" as UtilLiabilityFactorJsonCargo2
+participant "rater_calculation.calculate_additional_pip" as RaterAddlPIPCargo2
+participant "get_non_owned_auto_premium" as UtilNonOwnedAutoPremiumCargo2
+participant "get_hired_auto_info" as UtilHiredAutoInfoCargo2
+participant "get_udf_get_usic_gl_limit_by_id_db" as UtilGLLimitByIdCargo2
+participant "rater_calculation.westlake_al_calculator" as RaterWestlakeALCargo2
+participant "rater_calculation.admitted_al_calculator" as RaterAdmittedALCargo2
+ 
+Client -> API: POST /get_premium_details
+API -> UtilMissingParams: get_missing_params
+API -> UtilRequiredParams: getreqiured_params_for_quote_ssic_submission
+API -> UtilDateConvert: convert_date_string_to_specific_format
+API -> UtilValidateVehicles: validate_vehicles
+API -> UtilValidateDrivers: validate_drivers
+API -> UtilZipState: get_state_city_by_zipcode
+API -> UtilAgencyComm: get_agency_commission_if_present
+API -> UtilFinaliseComm: finalise_commission
+API -> UtilTaxGL: get_tax_for_general_liability
+API -> UtilTaxAppType: get_tax_for_app_type_db
+API -> UtilMCCA: get_mcca_fee_db
+API -> UtilUpdateQuoteAddl: update_quote_additional_data_to_process
+API -> RaterBaseRate: get_wsic_baserate
+API -> RaterGeneric: generic_rater
+API -> RaterTierComm: get_tier_and_commission
+API -> UtilRemoveQuotePremiums: remove_quote_premiums
+API -> UtilSaveQuotePremium: save_data_to_quotes_premium
+API -> UtilUpdateQuoteEstimate: update_quote_data_premium_estimate_db
+API -> UtilUpdateQuoteSubmit: update_quotes_json_submit_data_return_premium
+API -> UtilErrorCodes: get_submission_error_codes
+API -> UtilValidateCargo: validate_cargo_details
+API -> UtilCounter: Counter
+API -> UtilRemoveDrivers: remove_drivers
+API -> UtilAddDriverFactor: add_driver_and_return_factor
+API -> UtilTerritoryCode: get_territory_code_by_zipcode
+API -> UtilILFFactor: get_ilf_factor
+API -> UtilLCMFactor: get_lcm_factor
+API -> UtilRateControl: get_rate_control_factor
+API -> UtilTrailerType: get_trailer_type_factor
+API -> UtilFMCASAFactor: get_usic_fmcsa_factor_json
+API -> UtilLiabilityLimit: get_liability_limit_factor
+API -> UtilSaferFactor: get_safer_factor
+API -> UtilYearsExp: get_years_of_experience_factor
+API -> UtilSecondaryClass: get_secondary_class_factor
+API -> UtilTypeOfUse: get_type_of_use_factor
+API -> RaterVehicleInfo: get_information_from_vehicle
+API -> RaterNonAdmittedRMF: calculate_non_admitted_rmf
+API -> UtilALBaseRate: get_al_base_rate
+API -> UtilFleetFactor: get_fleet_factor
+API -> UtilUSICSaferFactor: get_usic_safer_factor
+API -> UtilUSICYearsExp: get_usic_years_of_experience_factor_json
+API -> UtilLiabilityFactorJson: get_liability_factor_json
+API -> RaterAddlPIP: calculate_additional_pip
+API -> UtilNonOwnedAutoPremium: get_non_owned_auto_premium
+API -> UtilHiredAutoInfo: get_hired_auto_info
+API -> UtilGLLimitById: get_udf_get_usic_gl_limit_by_id_db
+API -> RaterWestlakeAL: westlake_al_calculator
+API -> RaterAdmittedAL: admitted_al_calculator
+@enduml
+"""
+Full sequence: get_premium_details main flow
+"""
+ 
+@startuml
+actor Client
+participant "get_premium_details" as API
+participant "get_missing_params" as MissingParams
+participant "getreqiured_params_for_quote_ssic_submission" as RequiredParams
+participant "convert_date_string_to_specific_format" as DateConvert
+participant "validate_vehicles" as ValidateVehicles
+participant "validate_drivers" as ValidateDrivers
+participant "get_state_city_by_zipcode" as ZipState
+participant "get_agency_commission_if_present" as AgencyComm
+participant "common.finalise_commission" as FinaliseComm
+participant "get_tax_for_general_liability" as TaxGL
+participant "get_tax_for_app_type_db" as TaxAppType
+participant "get_mcca_fee_db" as MCCA
+participant "update_quote_additional_data_to_process" as UpdateQuoteAddl
+participant "rater_calculation.get_wsic_baserate" as RaterBaseRate
+participant "rater_calculation.generic_rater" as RaterGeneric
+participant "rater_calculation.get_tier_and_commission" as RaterTierComm
+participant "remove_quote_premiums" as RemoveQuotePremiums
+participant "save_data_to_quotes_premium" as SaveQuotePremium
+participant "update_quote_data_premium_estimate_db" as UpdateQuoteEstimate
+participant "update_quotes_json_submit_data_return_premium" as UpdateQuoteSubmit
+participant "get_submission_error_codes" as ErrorCodes
+participant "validate_cargo_details" as ValidateCargo
+participant "Counter" as CounterUtil
+ 
+Client -> API: POST /get_premium_details
+API -> MissingParams: get_missing_params
+MissingParams -> RequiredParams: getreqiured_params_for_quote_ssic_submission
+API -> DateConvert: convert_date_string_to_specific_format (effective_date)
+API -> DateConvert: convert_date_string_to_specific_format (expiration_date)
+API -> ValidateVehicles: validate_vehicles
+API -> ValidateDrivers: validate_drivers
+API -> ZipState: get_state_city_by_zipcode
+API -> AgencyComm: get_agency_commission_if_present
+API -> FinaliseComm: finalise_commission
+API -> TaxGL: get_tax_for_general_liability
+API -> TaxAppType: get_tax_for_app_type_db
+API -> MCCA: get_mcca_fee_db
+API -> UpdateQuoteAddl: update_quote_additional_data_to_process
+API -> RaterBaseRate: get_wsic_baserate
+API -> RaterGeneric: generic_rater
+API -> RaterTierComm: get_tier_and_commission
+API -> RemoveQuotePremiums: remove_quote_premiums
+API -> SaveQuotePremium: save_data_to_quotes_premium
+API -> UpdateQuoteEstimate: update_quote_data_premium_estimate_db
+API -> UpdateQuoteSubmit: update_quotes_json_submit_data_return_premium
+API -> ErrorCodes: get_submission_error_codes
+API -> ValidateCargo: validate_cargo_details
+API -> CounterUtil: Counter (for duplicate VIN/license checks)
+... (other utility and rater calls as in the main flow)
+API --> Client: Response (result, message, etc.)
+@enduml
+"""
+Drill-down: One-level sequence for each method called by get_premium_details
+"""
+ 
+@startuml
+actor API
+participant "get_missing_params" as MissingParams
+participant "getreqiured_params_for_quote_ssic_submission" as RequiredParams
+participant "convert_date_string_to_specific_format" as DateConvert
+participant "validate_vehicles" as ValidateVehicles
+participant "validate_drivers" as ValidateDrivers
+participant "get_state_city_by_zipcode" as ZipState
+participant "get_agency_commission_if_present" as AgencyComm
+participant "finalise_commission" as FinaliseComm
+ 
+API -> MissingParams: get_missing_params(data, required_params_list)
+MissingParams -> RequiredParams: getreqiured_params_for_quote_ssic_submission()
+MissingParams -> MissingParams: for param in required_params_list
+MissingParams -> MissingParams:   if data.get(param) == None
+MissingParams -> MissingParams:     missing_data.append(param)
+MissingParams --> API: return missing_data
+ 
+API -> DateConvert: convert_date_string_to_specific_format(input_date, from_format, to_format)
+DateConvert -> DateConvert: try parse input_date
+DateConvert -> DateConvert: if fail, use current date
+DateConvert --> API: return formatted date
+ 
+API -> ValidateVehicles: validate_vehicles(vehicles, data, isCargo)
+ValidateVehicles -> ValidateVehicles: for v in vehicles
+ValidateVehicles -> ValidateVehicles:   check year, make, model, etc.
+ValidateVehicles --> API: return validation_data
+ 
+API -> ValidateDrivers: validate_drivers(drivers)
+ValidateDrivers -> ValidateDrivers: for drv in drivers
+ValidateDrivers -> ValidateDrivers:   check name, license state, tenure, etc.
+ValidateDrivers --> API: return validation_data
+ 
+API -> ZipState: get_state_city_by_zipcode(zipcode)
+ZipState -> ZipState: pad zipcode if needed
+ZipState -> ZipState: db query udf_get_state_city_territory_with_zipcode
+ZipState --> API: return state/city
+ 
+API -> AgencyComm: get_agency_commission_if_present(app_id, agency_id, effective_date, exp_date)
+AgencyComm -> AgencyComm: db query get_agency_commission_from_agency
+AgencyComm --> API: return commission
+ 
+API -> FinaliseComm: finalise_commission(comm_obj, transaction_type_id)
+FinaliseComm -> FinaliseComm: check agency/company/global commission
+FinaliseComm -> FinaliseComm: pick by transaction_type_id
+FinaliseComm --> API: return commission dict
+ 
+@enduml

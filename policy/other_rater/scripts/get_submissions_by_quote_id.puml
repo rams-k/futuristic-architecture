@@ -1,0 +1,10 @@
+@startuml
+actor Client
+participant "quotes.views.get_submissions_by_quote_id" as get_submissions_by_quote_id
+participant "quotes.views.get_submission_details_by_quote_id" as get_submission_details_by_quote_id
+participant "DRF Response" as Response
+
+Client -> get_submissions_by_quote_id: POST /getsubmissionbyquote
+get_submissions_by_quote_id -> get_submission_details_by_quote_id: get_submission_details_by_quote_id(quote_id)
+get_submissions_by_quote_id -> Response: Response(data)
+@enduml

@@ -1,0 +1,27 @@
+@startuml
+actor Client
+participant "add_quote_bind_info (APIView)" as View
+participant "udf_is_quote_bound_available_db" as IsBindAvailable
+participant "update_quote_status_bind_info" as UpdateStatus
+participant "add_quote_bind_info_without_status" as AddBindInfo
+participant "update_queue_xref_status" as UpdateQueue
+
+Client -> View: POST /add_quote_bind_info
+View -> View: Parse request body (json.loads)
+View -> View: Validate duplicate VINs
+View -> IsBindAvailable: udf_is_quote_bound_available_db(quote_id)
+IsBindAvailable --> View: Return is_bind_available_data
+alt Binding not allowed
+    View -> Client: Return error message
+else Binding allowed
+    alt update_status is True
+        View -> UpdateStatus: update_quote_status_bind_info(quote_id, 9)
+        UpdateStatus --> View
+    end
+    View -> AddBindInfo: add_quote_bind_info_without_status(...)
+    AddBindInfo --> View: Return quote_info_id
+    View -> UpdateQueue: update_queue_xref_status(2, quote_id, 2, created_by)
+    UpdateQueue --> View
+    View -> Client: Return Response({quote_info_id, status: True})
+end
+@enduml

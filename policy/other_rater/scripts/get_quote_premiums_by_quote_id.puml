@@ -1,0 +1,43 @@
+@startuml
+actor Client
+participant "get_quote_premiums_by_quote_id (API View)" as View
+participant "get_all_quote_history_by_quote_id" as GetAllHistory
+participant "get_prem_from_json_data" as GetPremJson
+participant "get_quote_endorsement_premium_by_quoteid_db" as GetEndorsementPremium
+participant "date_time.convert_date_string_to_specific_format" as ConvertDate
+participant "common.calculate_prorated_factor" as CalcProrate
+participant "update_quotes_premium_data_by_quoteid_db" as UpdatePremium
+participant "update_quotes_json_submit_data_return_premium" as UpdateJsonPremium
+participant "get_quote_premium_by_quoteid_db" as GetPremium
+participant "Response" as DRF
+
+Client -> View: POST /get_quote_premiums_by_quote_id
+View -> View: Parse request.body (json)
+View -> GetAllHistory: get_all_quote_history_by_quote_id(quote_id)
+alt endorsement_number > 0
+    View -> GetPremJson: get_prem_from_json_data(quote_id, endorsement_number)
+    View -> GetEndorsementPremium: get_quote_endorsement_premium_by_quoteid_db(quote_id, endorsement_number)
+    alt len(all_quotes) > 1
+        View -> ConvertDate: convert_date_string_to_specific_format(cur_quote['endorsement_date'])
+        View -> ConvertDate: convert_date_string_to_specific_format(genInfo['effective_date'])
+        View -> ConvertDate: convert_date_string_to_specific_format(genInfo['expiration_date'])
+        View -> CalcProrate: calculate_prorated_factor(effective_date, expiration_date, endorsement_effective_date)
+        loop for each rs in res
+            View -> View: Calculate billable/prorated values, update rs
+        end
+        alt update required
+            View -> UpdatePremium: update_quotes_premium_data_by_quoteid_db(json.dumps(res))
+            View -> UpdateJsonPremium: update_quotes_json_submit_data_return_premium(...)
+        end
+    end
+else
+    View -> GetPremium: get_quote_premium_by_quoteid_db(quote_id)
+    alt all_quotes exists
+        View -> ConvertDate: convert_date_string_to_specific_format(genInfo['effective_date'])
+        View -> ConvertDate: convert_date_string_to_specific_format(genInfo['expiration_date'])
+        View -> View: Calculate commission, update rs
+    end
+end
+View -> DRF: Response(data, status=200)
+DRF --> Client: JSON response
+@enduml

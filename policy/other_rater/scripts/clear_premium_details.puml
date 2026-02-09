@@ -1,0 +1,86 @@
+@startuml
+actor User
+participant "clear_premium_details (API View)" as View
+participant "get_driver_factor_and_update_list" as GetDriverFactor
+participant "get_ins_quotes_json_data_by_id" as GetQuotesJson
+participant "remove_quote_premiums" as RemoveQuotePremiums
+participant "update_quote_status_after_rate_clear" as UpdateQuoteStatusClear
+participant "get_al_base_rate" as GetAlBaseRate
+participant "get_usic_state_zone" as GetStateZone
+participant "remove_general_info_db" as RemoveGeneralInfo
+participant "add_general_info" as AddGeneralInfo
+participant "update_underwriter_by_quote" as UpdateUnderwriter
+participant "add_vehicle_data" as AddVehicle
+participant "update_vehicle_data" as UpdateVehicle
+participant "update_quote_data_premium_estimate_db" as UpdateQuotePremiumEstimate
+participant "add_quote_data_premium_estimate_db" as AddQuotePremiumEstimate
+participant "update_quote_additional_data_to_process" as UpdateQuoteAdditionalData
+participant "udf_gl_insert_non_rating_fields_" as InsertNonRatingFields
+participant "proccess_quote_alert" as ProcessQuoteAlert
+
+User -> View: POST /clear_premium_details
+View -> View: Parse request.body (JSON)
+alt Missing parameters
+    View --> User: Response (status=0, result=msg)
+else
+    alt Drivers present
+        View -> GetDriverFactor: get_driver_factor_and_update_list(drivers, ...)
+        View: Update drivers in data
+    end
+    View -> GetQuotesJson: get_ins_quotes_json_data_by_id(quote_json_id)
+    View -> GetQuotesJson: get_ins_quotes_json_data_by_id(quote_json_id)
+    alt clear_existing_premium == 'Yes'
+        alt Not endorsement_number
+            alt status_quote not in [11,2]
+                View -> RemoveQuotePremiums: remove_quote_premiums(quote_id, endorsement_number)
+                View -> UpdateQuoteStatusClear: update_quote_status_after_rate_clear(quote_id)
+            end
+        else
+            alt endorse_status in [1]
+                View -> RemoveQuotePremiums: remove_quote_premiums(quote_id, endorsement_number)
+                View -> UpdateQuoteStatusClear: update_quote_status_after_rate_clear(quote_id)
+            end
+        end
+    end
+    View -> GetStateZone: get_usic_state_zone(state_code)
+    alt radiusOfOperationsInfo.radius == '48_states'
+        View -> GetAlBaseRate: get_al_base_rate(data, state_code, al_zone, 0, mileage_zone)
+    end
+    View -> RemoveGeneralInfo: remove_general_info_db(quote_id)
+    View -> AddGeneralInfo: add_general_info(...)
+    View -> UpdateUnderwriter: update_underwriter_by_quote(...)
+    loop For each vehicle
+        alt v.id < 1
+            View -> AddVehicle: add_vehicle_data(...)
+        else
+            View -> UpdateVehicle: update_vehicle_data(...)
+        end
+    end
+    alt quote_json_id > -1
+        alt clear_existing_premium == 'Yes'
+            alt Not endorsement_number
+                alt status_quote not in [11,2]
+                    View -> UpdateQuotePremiumEstimate: update_quote_data_premium_estimate_db(...)
+                end
+            else
+                alt endorse_status in [1]
+                    View -> UpdateQuotePremiumEstimate: update_quote_data_premium_estimate_db(...)
+                end
+            end
+        else
+            View -> GetQuotesJson: get_ins_quotes_json_data_by_id(quote_json_id)
+            View -> UpdateQuotePremiumEstimate: update_quote_data_premium_estimate_db(...)
+        end
+    else
+        View -> AddQuotePremiumEstimate: add_quote_data_premium_estimate_db(...)
+    end
+    alt quote_id and insured_id valid
+        View -> UpdateQuoteAdditionalData: update_quote_additional_data_to_process(...)
+    end
+    alt non_rating_data present
+        View -> InsertNonRatingFields: udf_gl_insert_non_rating_fields_(...)
+    end
+    View -> ProcessQuoteAlert: proccess_quote_alert(data, user_id)
+    View --> User: Response (status=1, result='SUCCESS', ...)
+end
+@enduml

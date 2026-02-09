@@ -1,0 +1,9 @@
+@startuml
+actor Client
+participant "quotes.views.get_gen_info_of_submission" as get_gen_info_of_submission
+participant "Django DB" as db
+
+Client -> get_gen_info_of_submission: GET /getgeneralinfobyquote
+get_gen_info_of_submission -> db: dbConnection.execute("SELECT ... FROM ... WHERE ...")
+get_gen_info_of_submission -> Client: Response(res)
+@enduml

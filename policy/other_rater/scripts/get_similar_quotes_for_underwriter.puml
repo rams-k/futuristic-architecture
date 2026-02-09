@@ -1,0 +1,13 @@
+@startuml
+actor Client
+participant "get_similar_quotes_for_underwriter (API View)" as View
+participant "get_all_quotes_similar_insured_name_and_dot_number" as GetSimilarQuotes
+participant "Response" as DRF
+
+Client -> View: POST /get_similar_quotes_for_underwriter
+View -> View: Parse request.body (json)
+View -> GetSimilarQuotes: get_all_quotes_similar_insured_name_and_dot_number(quote_id)
+GetSimilarQuotes --> View: quotes
+View -> DRF: Response({"quotes": quotes}, status=200)
+DRF --> Client: JSON response
+@enduml

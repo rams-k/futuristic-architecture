@@ -1,0 +1,19 @@
+@startuml
+actor Client
+participant "quotes.views.get_quotes_by_underwriter_id_paginated" as get_quotes_by_underwriter_id_paginated
+participant "quotes.views.get_all_quotes_by_underwriter_id_new" as get_all_quotes_by_underwriter_id_new
+participant "quotes.xlsx_render_utils.DashBoardExportXLWriter" as DashBoardExportXLWriter
+participant "util.paginate.paginate_data_create" as paginate_data_create
+participant "DRF Response" as Response
+
+Client -> get_quotes_by_underwriter_id_paginated: POST /getsubmissionsforunderwriterPaginated
+get_quotes_by_underwriter_id_paginated -> get_all_quotes_by_underwriter_id_new: get_all_quotes_by_underwriter_id_new(user_id, limit, page, ...)
+alt is_export == 1
+    get_quotes_by_underwriter_id_paginated -> DashBoardExportXLWriter: DashBoardExportXLWriter(data, field_names)
+    DashBoardExportXLWriter -> get_quotes_by_underwriter_id_paginated: get_excel_response()
+    get_quotes_by_underwriter_id_paginated -> Client: Excel file response
+else
+    get_quotes_by_underwriter_id_paginated -> paginate_data_create: paginate_data_create(res, request)
+    get_quotes_by_underwriter_id_paginated -> Response: Response(result)
+end
+@enduml

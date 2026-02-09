@@ -1,0 +1,12 @@
+@startuml
+actor User
+participant "get_agency_deatils_by_agencyid (API View)" as View
+participant "get_agency_details_db" as GetAgencyDetails
+
+User -> View: POST /get_agency_deatils_by_agencyid
+View -> View: Parse request.body (JSON)
+View -> GetAgencyDetails: get_agency_details_db(agency_id)
+GetAgencyDetails --> View: agency details
+View: Build response dict
+View --> User: Response (agency)
+@enduml

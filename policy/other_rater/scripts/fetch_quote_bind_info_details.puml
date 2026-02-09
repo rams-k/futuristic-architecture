@@ -1,0 +1,12 @@
+@startuml
+actor User
+participant "fetch_quote_bind_info_details (API View)" as View
+participant "get_quote_bind_info_db" as GetBindInfo
+
+User -> View: POST /fetch_quote_bind_info_details
+View -> View: Parse request.body (JSON)
+View -> GetBindInfo: get_quote_bind_info_db(quote_id)
+GetBindInfo --> View: bind info result
+View: Build result dict
+View --> User: Response (result)
+@enduml

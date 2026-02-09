@@ -1,0 +1,10 @@
+@startuml
+actor Client
+participant "quotes.views.get_coverages_info_quote" as get_coverages_info_quote
+participant "quotes.views.get_db_get_coverages_info_by_quoteid" as get_db_get_coverages_info_by_quoteid
+participant "DRF Response" as Response
+
+Client -> get_coverages_info_quote: POST /getcoveragesinfobyquote
+get_coverages_info_quote -> get_db_get_coverages_info_by_quoteid: get_db_get_coverages_info_by_quoteid(quote_id)
+get_coverages_info_quote -> Response: Response(data)
+@enduml

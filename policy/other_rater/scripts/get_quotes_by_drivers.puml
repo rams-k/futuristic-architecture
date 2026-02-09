@@ -1,0 +1,28 @@
+@startuml
+actor Client
+participant "get_quotes_by_drivers (API View)" as View
+participant "clean_string" as CleanString
+participant "udf_get_all_quotes_by_drivers" as UDF
+participant "paginate_data_create" as Paginate
+participant "Response" as DRF
+
+Client -> View: POST /get_quotes_by_drivers
+View -> View: Parse request.body (json)
+View -> CleanString: clean_string(quote_desc)
+View -> CleanString: clean_string(status)
+View -> CleanString: clean_string(underwriter)
+View -> CleanString: clean_string(policy_number)
+View -> CleanString: clean_string(insured_name)
+View -> CleanString: clean_string(insured_id)
+View -> CleanString: clean_string(submission_id)
+View -> CleanString: clean_string(dot_number)
+View -> CleanString: clean_string(agency)
+View -> CleanString: clean_string(driver_name)
+View -> CleanString: clean_string(driver_lic)
+View -> UDF: udf_get_all_quotes_by_drivers(\n user_id, limit, page, ...\n)
+UDF --> View: result list
+View -> Paginate: paginate_data_create(result, request)
+Paginate --> View: paginated_data
+View -> DRF: Response(result, status=200)
+DRF --> Client: JSON response
+@enduml

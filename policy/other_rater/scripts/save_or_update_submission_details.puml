@@ -1,0 +1,81 @@
+@startuml
+actor User
+participant "save_or_update_submission_details (API View)" as View
+participant "getreqiured_params_for_quote_ssic_submission" as GetRequiredParams
+participant "get_missing_params" as GetMissingParams
+participant "set_uw_credit_debit_factor_json" as SetUWFactor
+participant "add_insured" as AddInsured
+participant "update_insured" as UpdateInsured
+participant "add_submission_new_with_insured_id_db" as AddSubmissionWithInsured
+participant "add_quote_new_db" as AddQuote
+participant "add_quote_data_premium_estimate_db" as AddQuotePremiumEstimate
+participant "add_general_info" as AddGeneralInfo
+participant "update_underwriter_by_quote" as UpdateUnderwriter
+participant "remove_general_info_db" as RemoveGeneralInfo
+participant "update_quote_db" as UpdateQuoteDB
+participant "update_quote_data_premium_estimate_db" as UpdateQuotePremiumEstimate
+participant "update_quote_additional_data_to_process" as UpdateQuoteAdditionalData
+participant "set_subjectives_for_gl_quote_at_creation" as SetSubjectives
+participant "add_vehicle_data" as AddVehicle
+participant "update_vehicle_data" as UpdateVehicle
+
+User -> View: POST /save_or_update_submission_details
+View -> View: Parse request.body (JSON)
+View -> GetRequiredParams: getreqiured_params_for_quote_ssic_submission()
+View -> GetMissingParams: get_missing_params(data, params_needed)
+alt Missing data
+    View: Build error response
+    View --> User: Response (missing_data)
+else
+    View -> SetUWFactor: set_uw_credit_debit_factor_json(data)
+    alt insured_id == -1
+        View -> AddInsured: add_insured(insuredInfo, filingInfo, -1)
+        AddInsured --> View: insured_id
+        View: Update data['insured_id']
+    else
+        View -> UpdateInsured: update_insured(insuredInfo, filingInfo, insured_id)
+    end
+    alt quote_id == -1
+        alt submission_id == -1
+            View -> AddSubmissionWithInsured: add_submission_new_with_insured_id_db(...)
+            AddSubmissionWithInsured --> View: submission_id
+            View: Update data['submission_id']
+        end
+        View -> AddQuote: add_quote_new_db(...)
+        AddQuote --> View: quote_id
+        View: Update data['quote_id']
+        View: Build initial response
+        View -> AddQuotePremiumEstimate: add_quote_data_premium_estimate_db(...)
+        AddQuotePremiumEstimate --> View: json_id
+        View: Update data['json_id']
+        View -> AddGeneralInfo: add_general_info(...)
+        View -> UpdateUnderwriter: update_underwriter_by_quote(...)
+        View: Set msg = "SUCCESS"
+    else
+        View -> RemoveGeneralInfo: remove_general_info_db(quote_id)
+        View -> UpdateQuoteDB: update_quote_db(...)
+        View: Build response
+        View -> UpdateQuotePremiumEstimate: update_quote_data_premium_estimate_db(...)
+        View -> AddGeneralInfo: add_general_info(...)
+        View -> UpdateUnderwriter: update_underwriter_by_quote(...)
+        View: Set msg = "SUCCESS"
+    end
+    alt quote_id valid
+        View -> UpdateQuoteAdditionalData: update_quote_additional_data_to_process(...)
+        alt application_type_id in [499,496,497]
+            View -> SetSubjectives: set_subjectives_for_gl_quote_at_creation(quote_id)
+        end
+    end
+    loop For each vehicle
+        alt v.id < 1
+            View -> AddVehicle: add_vehicle_data(...)
+            AddVehicle --> View: v_id
+            View: Update data['vehicles'][vehicle_index]['id']
+        else
+            View -> UpdateVehicle: update_vehicle_data(...)
+        end
+    end
+    View: Build final response
+    View --> User: Response (quote_id, submission_id, result, json_id, missing_data, additional_data_id)
+end
+@enduml

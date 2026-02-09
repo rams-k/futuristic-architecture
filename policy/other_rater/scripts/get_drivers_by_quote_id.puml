@@ -1,0 +1,13 @@
+@startuml
+actor Client
+participant "get_drivers_by_quote_id (API View)" as View
+participant "get_drivers_by_quote_db" as GetDrivers
+participant "Response" as DRF
+
+Client -> View: POST /get_drivers_by_quote_id
+View -> View: Parse request.body (json)
+View -> GetDrivers: get_drivers_by_quote_db(quote_id)
+GetDrivers --> View: drivers list
+View -> DRF: Response({"result": drivers}, status=200)
+DRF --> Client: JSON response
+@enduml

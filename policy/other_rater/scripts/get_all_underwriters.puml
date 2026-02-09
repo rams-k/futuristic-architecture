@@ -1,0 +1,12 @@
+@startuml
+actor Client
+participant "get_all_underwriters (API View)" as View
+participant "get_all_underwriters_db" as GetAllUnderwriters
+participant "Response" as DRF
+
+Client -> View: GET /get_all_underwriters
+View -> GetAllUnderwriters: get_all_underwriters_db()
+GetAllUnderwriters --> View: underwriters list
+View -> DRF: Response({"result": underwriters}, status=200)
+DRF --> Client: JSON response
+@enduml

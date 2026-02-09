@@ -1,0 +1,13 @@
+@startuml
+actor Client
+participant "quotes.views.unbind_quote" as unbind_quote
+participant "quotes.views.get_quote_data_from_history" as get_quote_data_from_history
+participant "quotes.views.update_quotes_json_data_pdf" as update_quotes_json_data_pdf
+participant "Django DB" as db
+
+Client -> unbind_quote: POST /unBindQuote
+unbind_quote -> get_quote_data_from_history: get_quote_data_from_history(quote_id)
+unbind_quote -> update_quotes_json_data_pdf: update_quotes_json_data_pdf(json_history_id, quote_id, ...)
+unbind_quote -> db: dbConnection.execute("select udf_update_quotes_status(...)")
+unbind_quote -> Client: Response(res)
+@enduml

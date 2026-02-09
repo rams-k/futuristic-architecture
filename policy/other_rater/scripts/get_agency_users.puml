@@ -1,0 +1,12 @@
+@startuml
+actor Client
+participant "get_agency_users (APIView)" as View
+participant "get_all_agencies_users" as InternalFunc
+
+Client -> View: POST /get_agency_users
+View -> View: Parse request body (json.loads)
+View -> View: Extract agency_id
+View -> InternalFunc: get_all_agencies_users(_agency_id)
+InternalFunc --> View: Return users
+View -> Client: Return Response({result: users})
+@enduml

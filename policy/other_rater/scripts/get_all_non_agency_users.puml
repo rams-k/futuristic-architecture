@@ -1,0 +1,12 @@
+@startuml
+actor Client
+participant "get_all_non_agency_users (API View)" as View
+participant "get_all_non_agency_users_db" as GetNonAgencyUsers
+participant "Response" as DRF
+
+Client -> View: GET /get_all_non_agency_users
+View -> GetNonAgencyUsers: get_all_non_agency_users_db()
+GetNonAgencyUsers --> View: users list
+View -> DRF: Response({"result": users list}, status=200)
+DRF --> Client: JSON response
+@enduml

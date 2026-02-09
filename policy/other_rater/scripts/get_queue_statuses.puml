@@ -1,0 +1,12 @@
+@startuml
+actor Client
+participant "get_queue_statuses (API View)" as View
+participant "get_queue_statuses_db" as GetQueueStatuses
+participant "Response" as DRF
+
+Client -> View: GET /get_queue_statuses
+View -> GetQueueStatuses: get_queue_statuses_db()
+GetQueueStatuses --> View: queue statuses list
+View -> DRF: Response({"result": queue statuses list}, status=200)
+DRF --> Client: JSON response
+@enduml

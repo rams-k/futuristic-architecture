@@ -1,0 +1,10 @@
+@startuml
+actor Client
+participant "quotes.views.get_quotes_by_underwriter_id" as get_quotes_by_underwriter_id
+participant "quotes.views.get_all_quotes_by_underwriter_id" as get_all_quotes_by_underwriter_id
+participant "DRF Response" as Response
+
+Client -> get_quotes_by_underwriter_id: POST /getsubmissionsforunderwriter
+get_quotes_by_underwriter_id -> get_all_quotes_by_underwriter_id: get_all_quotes_by_underwriter_id(user_id)
+get_quotes_by_underwriter_id -> Response: Response(data)
+@enduml
