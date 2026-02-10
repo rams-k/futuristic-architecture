@@ -1,0 +1,18 @@
+@startuml
+actor Client
+participant "endorsementviews.update_endorsement" as View
+participant "ExternalAPIHelper._update_endorsement" as UpdateEnd
+participant "rest_framework.Response" as Response
+
+Client -> View: POST /update_endorsement
+View -> View: helper = ExternalAPIHelper()
+View -> UpdateEnd: helper._update_endorsement(request, request.data)
+UpdateEnd --> View: res
+alt res.get("status") == 1
+    View -> Response: Response(res, status=200)
+    Response --> Client: JSON response (200)
+else
+    View -> Response: Response(res, status=400)
+    Response --> Client: JSON response (400)
+end
+@enduml

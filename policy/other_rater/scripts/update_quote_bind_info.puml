@@ -1,24 +1,27 @@
 @startuml
-actor User
-participant "update_quote_bind_info (API View)" as View
-participant "udf_is_quote_bound_available_db" as IsBindAvailable
-participant "update_quote_bind_info_db" as UpdateBindInfo
+actor Client
+participant "views.update_quote_bind_info" as View
+participant "udf_is_quote_bound_available_db" as CheckBind
+participant "update_quote_bind_info_db" as UpdateBind
 participant "update_quote_status_bind_info" as UpdateStatus
+participant "rest_framework.Response" as Response
 
-User -> View: POST /update_quote_bind_info
-View -> View: Parse request.body (JSON)
-View -> IsBindAvailable: udf_is_quote_bound_available_db(quote_id)
-IsBindAvailable --> View: bind availability
-alt Binding not available
-    View: Build error message
-    View --> User: Response (status=False, result=msg)
-else Binding available
-    View -> UpdateBindInfo: update_quote_bind_info_db(policy_number, ..., lapes_information)
-    UpdateBindInfo --> View: quote_info_id
+Client -> View: POST /update_quote_bind_info
+View -> View: Parse request, extract data
+View -> CheckBind: udf_is_quote_bound_available_db(quote_id)
+CheckBind --> View: is_bind_available_data
+alt is_bind_available is False
+    View -> View: Build error message
+    View -> Response: Response(res, status=200)
+    Response --> Client: JSON response
+else
+    View -> UpdateBind: update_quote_bind_info_db(...)
+    UpdateBind --> View: quote_info_id
     alt update_status is True
         View -> UpdateStatus: update_quote_status_bind_info(quote_id, 9)
+        UpdateStatus --> View
     end
-    View: Build result dict
-    View --> User: Response (quote_info_id)
+    View -> Response: Response(res, status=200)
+    Response --> Client: JSON response
 end
 @enduml

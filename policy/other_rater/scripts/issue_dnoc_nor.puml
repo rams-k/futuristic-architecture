@@ -1,0 +1,55 @@
+@startuml
+actor Client
+participant "views.issue_dnoc_nor" as View
+participant "get_quote_data_from_history" as GetQuoteData
+participant "add_quotes_json_data_for_endorsement_with_latest_quote" as AddJson
+participant "add_quote_endorsement_with_transaction_id_and_can_res_dates" as AddEndorse
+participant "add_invoice_data_db" as AddInvoice
+participant "udf_update_quote_status_db" as UpdateStatus
+participant "add_form_history" as AddFormHistory
+participant "get_ins_quotes_json_data_by_id" as GetInsQuote
+participant "generate_merged_pdf" as GenPDF
+participant "upload_file_to_azure" as UploadAzure
+participant "add_policy_quote_document" as AddDoc
+participant "update_quote_json_document_id" as UpdateDocId
+participant "rest_framework.Response" as Response
+
+Client -> View: POST /issue_dnoc_nor
+View -> View: Parse request, extract data
+alt type == 12 (Reinstatement)
+    View -> GetQuoteData: get_quote_data_from_history(quote_id)
+    GetQuoteData --> View: quotes_data
+    View -> View: Determine status_id
+    View -> View: Set transaction_type, transaction_type_id, description, doc_name
+else (Cancellation)
+    View -> View: Set status_id, transaction_type, transaction_type_id, description, doc_name
+end
+View -> AddJson: add_quotes_json_data_for_endorsement_with_latest_quote(quote_id, 2, transaction_type_id, transaction_date)
+AddJson --> View: end_num
+View -> AddEndorse: add_quote_endorsement_with_transaction_id_and_can_res_dates(...)
+AddEndorse --> View
+alt invoice_id is not None
+    View -> AddInvoice: add_invoice_data_db(...)
+    AddInvoice --> View
+end
+View -> UpdateStatus: udf_update_quote_status_db(quote_id, status_id, 0)
+UpdateStatus --> View
+View -> AddFormHistory: add_form_history(quote_id, json_history_id, doc_ids)
+AddFormHistory --> View
+View -> GetInsQuote: get_ins_quotes_json_data_by_id(json_history_id)
+GetInsQuote --> View: quote_data
+alt cancellation_forms not empty
+    View -> GenPDF: generate_merged_pdf(cancellation_forms, quote_data)
+    GenPDF --> View: file_path
+    View -> UploadAzure: upload_file_to_azure(file_name, file_path)
+    UploadAzure --> View: u_res
+    alt u_res['status']
+        View -> AddDoc: add_policy_quote_document(...)
+        AddDoc --> View: document_id
+        View -> UpdateDocId: update_quote_json_document_id(quote_id, json_history_id, document_id)
+        UpdateDocId --> View
+    end
+end
+View -> Response: Response(res, status=200)
+Response --> Client: JSON response
+@enduml

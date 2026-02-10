@@ -1,0 +1,59 @@
+@startuml
+actor Client
+participant "views.get_policy_issuance_pdf" as View
+participant "get_quote_data_from_history" as GetQuoteData
+participant "get_policy_issuance_json_id_db" as GetJsonId
+participant "udf_create_policy_issuance_json_db" as CreateJson
+participant "get_form_master_by_id_list" as GetFormList
+participant "add_form_history" as AddFormHistory
+participant "get_risk_company_lob_agency_details" as GetRiskDetails
+participant "get_market_company_by_id" as GetMarketDetails
+participant "generate_policy_issuance_pdf_v2" as GenPDF
+participant "add_policy_quote_document" as AddDoc
+participant "update_quote_json_document_id" as UpdateDocId
+participant "remove_policy_issuance_json_db" as RemoveJson
+participant "rest_framework.Response" as Response
+
+Client -> View: POST /get_policy_issuance_pdf
+View -> View: Parse request, extract data
+alt quote_json_data not in data
+    View -> GetQuoteData: get_quote_data_from_history(quote_id)
+    GetQuoteData --> View: quote_json_data
+end
+alt from_endorsement == 1
+    View -> GetJsonId: get_policy_issuance_json_id_db(quote_id)
+    GetJsonId --> View: json_history_id
+else from_endorsement == 0
+    View -> CreateJson: udf_create_policy_issuance_json_db(quote_id)
+    CreateJson --> View: json_data
+    alt json_data is None
+        View -> Response: Response(res, status=200)
+        Response --> Client: JSON response
+    end
+end
+View -> GetFormList: get_form_master_by_id_list(documents)
+GetFormList --> View: doc_list
+View -> AddFormHistory: add_form_history(quote_id, json_history_id, doc_ids)
+AddFormHistory --> View
+View -> GetRiskDetails: get_risk_company_lob_agency_details(quote_id)
+GetRiskDetails --> View: _details
+View -> GetMarketDetails: get_market_company_by_id(market_company_id)
+GetMarketDetails --> View: _market_details
+View -> GenPDF: generate_policy_issuance_pdf_v2(data, file)
+GenPDF --> View: u_res
+alt u_res['status'] is True
+    View -> AddDoc: add_policy_quote_document(...)
+    AddDoc --> View: document_id
+    View -> UpdateDocId: update_quote_json_document_id(...)
+    UpdateDocId --> View
+    View -> Response: Response(res, status=200)
+    Response --> Client: JSON response
+else
+    alt from_endorsement == 0
+        View -> RemoveJson: remove_policy_issuance_json_db(quote_id, json_history_id)
+        RemoveJson --> View
+    end
+    View -> Response: Response(res, status=200)
+    Response --> Client: JSON response
+end
+@enduml

@@ -1,0 +1,22 @@
+@startuml
+actor Client
+participant "endorsementviews.create_endorsement" as View
+participant "ExternalAPIHelper._create_endorsement" as CreateEnd
+participant "log_endorsement_mapping" as LogMap
+participant "rest_framework.Response" as Response
+
+Client -> View: POST /create_endorsement
+View -> View: helper = ExternalAPIHelper()
+View -> View: data = request.data
+View -> CreateEnd: helper._create_endorsement(request, data)
+CreateEnd --> View: res
+alt res.get("status") == 1
+    View -> LogMap: log_endorsement_mapping(...)
+    LogMap --> View
+    View -> Response: Response(res, status=201)
+    Response --> Client: JSON response (201)
+else
+    View -> Response: Response(res, status=400)
+    Response --> Client: JSON response (400)
+end
+@enduml

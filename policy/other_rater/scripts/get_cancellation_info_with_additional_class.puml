@@ -1,0 +1,19 @@
+@startuml
+actor Client
+participant "views.get_cancellation_info_with_additional_class" as View
+participant "requests.post" as RequestsPost
+participant "rest_framework.Response" as Response
+
+Client -> View: POST /get_cancellation_info_with_additional_class
+View -> View: Parse request, extract payload
+View -> View: Get Authorization header
+alt Authorization header missing
+    View -> View: Raise KeyError
+else
+    View -> View: Build forwarded_headers
+    View -> RequestsPost: requests.post(external_url, headers, json=payload)
+    RequestsPost --> View: response
+    View -> Response: Response(response.json(), status=200)
+    Response --> Client: JSON response
+end
+@enduml
