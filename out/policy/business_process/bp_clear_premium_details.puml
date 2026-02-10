@@ -1,0 +1,31 @@
+@startuml
+|User|
+start
+:Send POST /clear_premium_details request;
+
+|System|
+:Parse JSON data;
+:Check for required parameters;
+if (Any required parameter missing?) then (Yes)
+  :Return error response;
+  stop
+else (No)
+  :Update driver factors if drivers exist;
+  :Check policy/endorsement status;
+  if (clear_existing_premium == 'Yes') then (Yes)
+    :Remove quote premiums;
+    :Update quote status after rate clear;
+  endif
+  :Update insured and filing info;
+  :Update or add vehicle data;
+  :Update or add driver data;
+  :Update or add premium estimate JSON;
+  :Update additional quote data;
+  if (non_rating_data exists?) then (Yes)
+    :Save non-rating fields;
+  endif
+  :Process quote alerts;
+  :Prepare and return success response;
+endif
+stop
+@enduml

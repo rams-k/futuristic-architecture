@@ -1,0 +1,37 @@
+@startuml
+|User|
+start
+:Send POST /get_policy_issuance_pdf request;
+
+|System|
+:Parse JSON data and file;
+:Check if from_endorsement;
+if (from_endorsement == 1?) then (Yes)
+  :Get policy issuance JSON ID from DB;
+else (No)
+  :Create policy issuance JSON in DB;
+  if (creation fails?) then (Yes)
+    :Return error response;
+    stop
+  endif
+endif
+:Get document list;
+:Add form history;
+:Get risk and market company details;
+:Generate policy issuance PDF;
+if (PDF generation successful?) then (Yes)
+  :Add policy quote document;
+  :Update quote JSON with document ID;
+  :Set response status True;
+else (No)
+  :Remove policy issuance JSON if needed;
+  :Set response status False;
+  :Return response;
+  stop
+endif
+if (from_endorsement == 0?) then (Yes)
+  :Update quote status in DB;
+endif
+:Return response to user;
+stop
+@enduml

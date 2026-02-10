@@ -1,0 +1,46 @@
+@startuml
+|User|
+start
+:Send POST /issue_dnoc_nor request;
+
+|System|
+:Parse JSON data;
+:Extract all required fields;
+if (type == 12?) then (Yes)
+  :Set description to 'Reinstatement Notice';
+  :Set doc_name to 'REINSTATEMENT';
+  :Get current quote status;
+  if (current_quote_status_id == 12?) then (Yes)
+    :Set status_id to 11;
+  else (No)
+    :Set status_id to 19;
+  endif
+  :Set transaction_type to 'NOR';
+  :Set transaction_type_id to 12;
+else (No)
+  :Set description to 'Cancellation Notice';
+  :Set doc_name to 'CANCELLATION';
+  :Set status_id to 12;
+  :Set transaction_type to 'DNOC';
+  :Set transaction_type_id to 11;
+endif
+:Add endorsement JSON for DNOC/NOR;
+:Add quote endorsement with transaction info;
+if (invoice_id exists?) then (Yes)
+  :Add invoice data;
+endif
+:Update quote status in DB;
+:Add form/document history;
+:Get quote data;
+if (cancellation_forms exist?) then (Yes)
+  :Generate merged PDF;
+  :Upload PDF to Azure;
+  if (upload successful?) then (Yes)
+    :Add policy quote document;
+    :Update quote JSON with document ID;
+  endif
+endif
+:Prepare response;
+:Return response to user;
+stop
+@enduml

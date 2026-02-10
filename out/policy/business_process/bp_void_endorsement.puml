@@ -1,0 +1,17 @@
+@startuml
+|User|
+start
+:Send POST /void_endorsement request;
+
+|System|
+:Parse JSON data;
+:Get user_id from request;
+:Process void endorsement (process_void_endorsement);
+:Check result message;
+if (msg == "OK"?) then (Yes)
+  :Return success response;
+else (No)
+  :Return error response with message;
+endif
+stop
+@enduml

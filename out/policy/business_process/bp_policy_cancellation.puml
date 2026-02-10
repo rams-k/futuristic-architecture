@@ -1,0 +1,19 @@
+@startuml
+|User|
+start
+:Send POST /get_cancellation_info_with_additional_class request;
+
+|System|
+:Parse JSON data;
+:Check for Authorization header;
+if (Authorization header missing?) then (Yes)
+  :Raise error: Authorization header is missing;
+  stop
+else (No)
+  :Prepare headers (Authorization, Content-Type, user_info);
+  :Forward request to external ACCOUNTING_URL;
+  :Receive response from external service;
+  :Return response to user;
+endif
+stop
+@enduml

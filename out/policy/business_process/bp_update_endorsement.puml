@@ -1,0 +1,31 @@
+@startuml
+|User|
+start
+:Send POST /update_new_endorsement request;
+
+|System|
+:Parse JSON data;
+:Extract all required fields;
+:Get cancellation/reinstate date for quote;
+if (update_endt_desc is True?) then (Yes)
+  :Update endorsement description in DB;
+  :Set message: Endorsement Update Successfully;
+else (No)
+  if (cancellation_date is None?) then (Yes)
+    :Update endorsement in DB;
+    :Set message: Endorsement Update Successfully;
+  else (No)
+    if (endorsement_date <= cancellation_date?) then (Yes)
+      :Update endorsement in DB;
+      :Set message: Endorsement Update Successfully;
+    else (No)
+      :Do not update endorsement;
+      :Set message: No Endorsement can be Processed past DNOC Date;
+      :Set statusCode = 0;
+    endif
+  endif
+endif
+:Prepare response;
+:Return response to user;
+stop
+@enduml

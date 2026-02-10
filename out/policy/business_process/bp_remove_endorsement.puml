@@ -1,0 +1,13 @@
+@startuml
+|User|
+start
+:Send POST /remove_endorsement request;
+
+|System|
+:Parse JSON data;
+:Extract quote_id and json_history_id;
+:Call remove_current_endorsement_db with quote_id and json_history_id;
+:Prepare response with json_history_id;
+:Return response to user;
+stop
+@enduml

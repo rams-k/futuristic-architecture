@@ -1,0 +1,27 @@
+@startuml
+|User|
+start
+:Send POST /cancel_endorsement request;
+
+|System|
+:Parse JSON data;
+:Extract all required fields;
+:Prepare premium and fee data;
+:Add endorsement JSON for cancel;
+:Get quote and premium data;
+:Update quote estimate JSON;
+:Add cancelled endorsement record;
+:Update endorsement date and premium info;
+:Add invoice data;
+:Save cancellation/reinstatement info;
+:Add form/document history;
+if (cancellation forms exist?) then (Yes)
+  :Generate merged PDF;
+  :Upload PDF to Azure;
+  :Add policy quote document;
+  :Update quote JSON with document ID;
+endif
+:Prepare response;
+:Return response to user;
+stop
+@enduml

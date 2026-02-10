@@ -1,0 +1,23 @@
+@startuml
+|User|
+start
+:Send POST /update_quote_bind_info request;
+
+|System|
+:Parse JSON data;
+:Extract all required fields;
+:Check if binding is allowed (udf_is_quote_bound_available_db);
+if (Binding not allowed?) then (Yes)
+  :Prepare error message;
+  :Return error response;
+  stop
+else (No)
+  :Update quote bind info in DB (update_quote_bind_info_db);
+  if (update_status is True?) then (Yes)
+    :Update quote status (update_quote_status_bind_info);
+  endif
+  :Prepare response with quote_info_id;
+  :Return response to user;
+endif
+stop
+@enduml

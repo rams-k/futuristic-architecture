@@ -1,27 +1,34 @@
 @startuml
-actor Client
-participant "quotes.views.create_quote_form_details" as API
-participant "quotes.views.ins_forms_master" as ins_forms_master
-participant "quotes.views.add_forms_details_db" as add_forms_details_db
+actor User
+participant "clear_premium_details" as API
+participant "get_driver_factor_and_update_list" as DriverFactor
+participant "remove_quote_premiums" as RemovePremiums
+participant "update_quote_status_after_rate_clear" as UpdateStatus
+participant "get_al_base_rate" as BaseRate
+participant "add_vehicle_data" as AddVehicle
+participant "update_vehicle_data" as UpdateVehicle
+participant "update_quote_data_premium_estimate_db" as UpdatePremiumEstimate
+participant "add_general_info" as AddGeneralInfo
+participant "update_underwriter_by_quote" as UpdateUnderwriter
+participant "update_quote_additional_data_to_process" as UpdateAdditional
+participant "udf_gl_insert_non_rating_fields_" as SaveNonRating
+participant "proccess_quote_alert" as ProcessAlert
 
-Client -> API: POST /create_quote_form_details (quotes_forms, fileData)
-API -> API: json.loads(request.body)
-API -> API: Extract form_data, filesData
-alt filesData is not empty
-    API -> API: Generate file_id (uuid)
-    API -> API: Build file_location
-    API -> API: base64.decodebytes(filesData[0]['filecontent'])
-    API -> API: Write decoded file to file_location
+User -> API: POST /clear_premium_details
+API -> API: Parse JSON, validate params
+API -> DriverFactor: get_driver_factor_and_update_list (if drivers exist)
+API -> RemovePremiums: remove_quote_premiums (if clear_existing_premium == 'Yes')
+API -> UpdateStatus: update_quote_status_after_rate_clear (if clear_existing_premium == 'Yes')
+API -> BaseRate: get_al_base_rate (if radius == '48_states')
+loop for each vehicle
+    API -> AddVehicle: add_vehicle_data (if new)
+    API -> UpdateVehicle: update_vehicle_data (if existing)
 end
-API -> ins_forms_master: ins_forms_master(0, form_name, ..., file_location, company_id, lob_id)
-ins_forms_master --> API: form_data
-API -> add_forms_details_db: add_forms_details_db(form_data)
-add_forms_details_db --> API: status
-alt status != "FAIL"
-    API -> API: Build success response
-else
-    API -> API: Build failure response
-end
-API -> Client: Response(data, HTTP 200)
-API -> Client: (on error) Response(data, HTTP 500)
+API -> UpdatePremiumEstimate: update_quote_data_premium_estimate_db
+API -> AddGeneralInfo: add_general_info
+API -> UpdateUnderwriter: update_underwriter_by_quote
+API -> UpdateAdditional: update_quote_additional_data_to_process
+API -> SaveNonRating: udf_gl_insert_non_rating_fields_ (if non_rating_data exists)
+API -> ProcessAlert: proccess_quote_alert
+API --> User: Response (status, result, quote_json_id, etc.)
 @enduml

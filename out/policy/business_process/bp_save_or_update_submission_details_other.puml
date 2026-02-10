@@ -1,0 +1,42 @@
+@startuml
+|User|
+start
+:Send POST /save_or_update_submission_details request;
+
+|System|
+:Parse JSON data;
+:Get required parameters;
+:Check for missing parameters;
+if (Missing parameters?) then (Yes)
+  :Return error response;
+  stop
+endif
+:Extract insured, quote, and submission info;
+if (application_type_id is restricted?) then (Yes)
+  :Return restriction message;
+  stop
+endif
+if (insured_id == -1?) then (Yes)
+  :Add insured;
+else (No)
+  :Update insured;
+endif
+if (quote_id == -1?) then (Yes)
+  if (submission_id == -1?) then (Yes)
+    :Add submission;
+  endif
+  :Add quote;
+  :Add quote premium estimate JSON;
+  :Add general info and underwriter info;
+else (No)
+  :Update quote;
+  :Update premium estimate JSON;
+  :Add general info and underwriter info;
+endif
+:Update additional quote data;
+:Update/set subjectives if needed;
+:Add or update vehicle data;
+:Prepare response;
+:Return response to user;
+stop
+@enduml

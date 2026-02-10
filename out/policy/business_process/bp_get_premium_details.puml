@@ -1,0 +1,35 @@
+@startuml
+|User|
+start
+:Send POST /get_premium_details request;
+
+|System|
+:Parse JSON data;
+:Extract and validate required fields;
+:Check for missing parameters;
+if (Missing parameters?) then (Yes)
+  :Return error response;
+  stop
+endif
+:Convert effective/expiration dates;
+:Validate vehicles and drivers;
+if (Validation errors?) then (Yes)
+  :Return error response;
+  stop
+endif
+:Get state/city by zipcode;
+:Get agency commission;
+:Finalize commission;
+:Get taxes and fees;
+:Update quote additional data;
+:Get base rates and rater calculations;
+:Remove and save quote premiums;
+:Update premium estimate and submission data;
+:Get error codes;
+:Validate cargo details;
+:Check for duplicate VINs and licenses;
+:Calculate factors and premiums;
+:Prepare response;
+:Return response to user;
+stop
+@enduml
