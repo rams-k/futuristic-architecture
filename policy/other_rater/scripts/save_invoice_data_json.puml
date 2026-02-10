@@ -1,0 +1,43 @@
+@startuml
+actor Client
+participant "save_invoice_data_json" as View
+participant "add_invoice_data_db"
+participant "update_quote_effective_expiry_date_db"
+participant "check_endorsement_count"
+participant "update_invoice_data"
+participant "update_vehicle_driver_and_ai_status"
+participant "update_drivers_after_endorsement"
+participant "udf_update_quote_status_db"
+participant "complete_endorsement_request_status_db"
+participant "log_endorsement_wo_invoice"
+participant "is_inspection_included"
+participant "add_queue_quote_id_to_xref"
+
+Client -> View: POST /save_invoice_data_json
+View -> View: Parse request body
+alt not endorsement_process
+    View -> add_invoice_data_db: add_invoice_data_db(...)
+    add_invoice_data_db --> View: result
+end
+alt endorsement_number > 0
+    View -> update_quote_effective_expiry_date_db: update_quote_effective_expiry_date_db(...)
+end
+View -> check_endorsement_count: check_endorsement_count(...)
+check_endorsement_count --> View: endorsement_count
+alt invoice_json exists
+    View -> update_invoice_data: update_invoice_data(...)
+end
+View -> update_vehicle_driver_and_ai_status: update_vehicle_driver_and_ai_status(...)
+View -> update_drivers_after_endorsement: update_drivers_after_endorsement(...)
+View -> udf_update_quote_status_db: udf_update_quote_status_db(...)
+View -> complete_endorsement_request_status_db: complete_endorsement_request_status_db(...)
+alt endorsement_process
+    View -> log_endorsement_wo_invoice: log_endorsement_wo_invoice(...)
+end
+alt invoice_id and endorsement_number == 0 and is_inspection_included(...)
+    View -> is_inspection_included: is_inspection_included(...)
+    is_inspection_included --> View
+    View -> add_queue_quote_id_to_xref: add_queue_quote_id_to_xref(...)
+end
+View -> Client: Response(result)
+@enduml

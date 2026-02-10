@@ -1,0 +1,28 @@
+@startuml
+actor Client
+participant "update_new_endorsement" as View
+participant "get_cancellation_reinstate_date_of_quote_id_db"
+participant "update_new_endorsement_db"
+
+Client -> View: POST /updatenewendorsement
+View -> View: Parse request body
+View -> get_cancellation_reinstate_date_of_quote_id_db: get_cancellation_reinstate_date_of_quote_id_db(_quote_id)
+get_cancellation_reinstate_date_of_quote_id_db --> View: date_data
+
+alt update_endt_desc is True
+    View -> update_new_endorsement_db: update_new_endorsement_db(...)
+    update_new_endorsement_db --> View: endorsement
+else
+    alt cancellation_date is None
+        View -> update_new_endorsement_db: update_new_endorsement_db(...)
+        update_new_endorsement_db --> View: endorsement
+    else _endorsement_date <= cancellation_date
+        View -> update_new_endorsement_db: update_new_endorsement_db(...)
+        update_new_endorsement_db --> View: endorsement
+    else _endorsement_date > cancellation_date
+        View -> View: Set endorsement = None, message, statusCode = 0
+    end
+end
+
+View -> Client: Response({endorsement, status, message})
+@enduml

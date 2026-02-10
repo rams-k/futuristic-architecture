@@ -1,0 +1,11 @@
+@startuml
+actor Client
+participant "remove_endorsement" as View
+participant "remove_current_endorsement_db"
+
+Client -> View: POST /removeendorsement
+View -> View: Parse request body (quote_id, json_history_id)
+View -> remove_current_endorsement_db: remove_current_endorsement_db(_quote_id, _json_history_id)
+remove_current_endorsement_db --> View: id
+View -> Client: Response({json_history_id: id})
+@enduml

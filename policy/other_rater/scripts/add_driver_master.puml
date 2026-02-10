@@ -1,0 +1,59 @@
+@startuml
+actor Client
+participant "add_driver_master" as View
+participant "get_reqiured_params_for_driver_master"
+participant "get_missing_params"
+participant "calculateAge"
+participant "calculate_driver_factor"
+participant "add_driver_master_data"
+participant "get_driver_details_by_id_json"
+participant "add_driver_to_quote_only"
+participant "get_driver_details_by_id_quote_level"
+
+Client -> View: POST /addDriverMaster
+View -> View: Parse request body
+View -> get_reqiured_params_for_driver_master: get_reqiured_params_for_driver_master()
+get_reqiured_params_for_driver_master --> View: params_needed
+
+alt data is list
+    loop For each dv in data
+        alt dv.in_driver_master
+            View -> get_missing_params: get_missing_params(dv, params_needed)
+            get_missing_params --> View: missing_params
+            alt missing_params not empty
+                View -> Client: Response({status: False, required_params: missing_params, ...})
+                return
+            end
+        end
+    end
+
+    loop For each dv in data
+        alt dv.in_driver_master
+            View -> calculateAge: calculateAge(dv.dob)
+            calculateAge --> View: age
+            View -> calculate_driver_factor: calculate_driver_factor(...)
+            calculate_driver_factor --> View: drv_factors
+            View -> add_driver_master_data: add_driver_master_data(...)
+            add_driver_master_data --> View: driver_master_id
+            View -> get_driver_details_by_id_json: get_driver_details_by_id_json(driver_master_id)
+            get_driver_details_by_id_json --> View: driver
+        else
+            View -> calculateAge: calculateAge(dv.dob)
+            calculateAge --> View: age
+            View -> calculate_driver_factor: calculate_driver_factor(...)
+            calculate_driver_factor --> View: drv_factors
+            View -> add_driver_to_quote_only: add_driver_to_quote_only(...)
+            add_driver_to_quote_only --> View: driver_id
+            View -> get_driver_details_by_id_quote_level: get_driver_details_by_id_quote_level(driver_id)
+            get_driver_details_by_id_quote_level --> View: driver
+        end
+    end
+    View -> Client: Response({status: True, drivers: drivers, ...})
+else
+    View -> Client: Response({status: False, message: "Data should be in array form"})
+end
+
+alt Exception
+    View -> Client: Response({status: False, message: exception, ...})
+end
+@enduml

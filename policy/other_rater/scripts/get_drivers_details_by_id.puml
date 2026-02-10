@@ -1,0 +1,19 @@
+@startuml
+actor Client
+participant "views.get_drivers_details_by_id" as View
+participant "get_driver_details_from_master_by_id" as ById
+participant "rest_framework.Response" as Response
+
+Client -> View: POST /get_drivers_details_by_id
+View -> View: Parse request, extract data
+alt id provided
+    View -> ById: get_driver_details_from_master_by_id(id)
+    ById --> View: drv_list
+    View -> View: Flatten drv_list if needed
+    View -> View: msg = "SUCCESS"
+else
+    View -> View: msg = "FAILURE"
+end
+View -> Response: Response({"drivers": drv_list, "message": msg}, status=200)
+Response --> Client: JSON response
+@enduml

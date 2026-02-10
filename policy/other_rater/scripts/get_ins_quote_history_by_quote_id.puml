@@ -1,0 +1,12 @@
+@startuml
+actor User
+participant "get_ins_quote_history_by_quote_id (API View)" as View
+participant "get_ins_quote_history_by_quote_id_db" as GetQuoteHistory
+
+User -> View: POST /get_ins_quote_history_by_quote_id
+View -> View: Parse request.body (JSON)
+View -> GetQuoteHistory: get_ins_quote_history_by_quote_id_db(quote_id)
+GetQuoteHistory --> View: quote history result
+View: Build response dict
+View --> User: Response (result)
+@enduml

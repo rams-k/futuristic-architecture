@@ -1,0 +1,32 @@
+@startuml
+actor Client
+participant "views.get_drivers_details" as View
+participant "get_driver_details_from_master_by_licno_and_state" as ByLicState
+participant "get_driver_details_from_master_by_name_and_dob" as ByNameDob
+participant "get_driver_details_from_master_by_name" as ByName
+participant "get_driver_details_from_master_by_dob" as ByDob
+participant "get_driver_factor_and_update_list" as UpdateList
+participant "rest_framework.Response" as Response
+
+Client -> View: POST /get_drivers_details
+View -> View: Parse request, extract data
+alt licence_number and state provided
+    View -> ByLicState: get_driver_details_from_master_by_licno_and_state(licence_number, state, user_id)
+    ByLicState --> View: drv_list
+elseif driver_name and dob provided
+    View -> ByNameDob: get_driver_details_from_master_by_name_and_dob(driver_name, dob, user_id)
+    ByNameDob --> View: drv_list
+elseif driver_name only
+    View -> ByName: get_driver_details_from_master_by_name(driver_name, user_id)
+    ByName --> View: drv_list
+elseif dob only
+    View -> ByDob: get_driver_details_from_master_by_dob(dob, user_id)
+    ByDob --> View: drv_list
+else
+    View -> View: msg = "FAILURE"
+end
+View -> UpdateList: get_driver_factor_and_update_list(drv_list, updated_drv_list, lock_rate_date, application_type_id)
+UpdateList --> View: updated_drv_list
+View -> Response: Response({"drivers": updated_drv_list, "message": msg}, status=200)
+Response --> Client: JSON response
+@enduml

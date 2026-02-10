@@ -1,0 +1,13 @@
+@startuml
+actor Client
+participant "views.get_application_types" as View
+participant "quotedboperations.get_application_types_db" as DB
+participant "rest_framework.Response" as Response
+
+Client -> View: GET /get_application_types
+View -> DB: get_application_types_db()
+DB --> View: application types list
+View -> View: Build result dict
+View -> Response: Response(result, status=200)
+Response --> Client: JSON response
+@enduml

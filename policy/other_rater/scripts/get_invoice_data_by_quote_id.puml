@@ -1,0 +1,11 @@
+@startuml
+actor Client
+participant "get_invoice_data_by_quote_id" as View
+participant "get_invoice_data_by_quote_id_db"
+
+Client -> View: POST /getinvoicehistoryofquote
+View -> View: Parse request body (quote_id, etc.)
+View -> get_invoice_data_by_quote_id_db: get_invoice_data_by_quote_id_db(quote_id)
+get_invoice_data_by_quote_id_db --> View: invoice_data
+View -> Client: Response(invoice_data)
+@enduml

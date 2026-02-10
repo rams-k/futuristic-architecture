@@ -1,0 +1,12 @@
+@startuml
+actor Client
+participant "update_vehicle" as View
+participant "update_vehicle_details"
+
+Client -> View: POST /updatevehicle
+View -> View: Parse request body (_vehicle_id, _quote_id, _status, _modified_date)
+View -> View: Format _modified_date
+View -> update_vehicle_details: update_vehicle_details(_vehicle_id, _quote_id, _status, _modified_date)
+update_vehicle_details --> View: vehicle_id
+View -> Client: Response({result: vehicle_id})
+@enduml

@@ -1,0 +1,15 @@
+@startuml
+actor Client
+participant "views.get_endorsement_details" as View
+participant "quotedboperations.get_endorsement_details_of_quote_and_number" as DB
+participant "rest_framework.Response" as Response
+
+Client -> View: POST /get_endorsement_details
+View -> View: json.loads(request.body)
+View -> View: Extract quote_id, endorsement_number
+View -> DB: get_endorsement_details_of_quote_and_number(quote_id, endorsement_number)
+DB --> View: endorsement details
+View -> View: Build result dict
+View -> Response: Response(result, status=200)
+Response --> Client: JSON response
+@enduml

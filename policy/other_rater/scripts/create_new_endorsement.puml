@@ -1,0 +1,23 @@
+@startuml
+actor Client
+participant "create_new_endorsement" as View
+participant "get_cancellation_reinstate_date_of_quote_id_db"
+participant "create_new_endorsement_db"
+
+Client -> View: POST /createendorsement
+View -> View: Parse request body
+View -> get_cancellation_reinstate_date_of_quote_id_db: get_cancellation_reinstate_date_of_quote_id_db(_quote_id)
+get_cancellation_reinstate_date_of_quote_id_db --> View: date_data
+
+alt cancellation_date is None
+    View -> create_new_endorsement_db: create_new_endorsement_db(...)
+    create_new_endorsement_db --> View: endorsement
+else _endorsement_date <= cancellation_date
+    View -> create_new_endorsement_db: create_new_endorsement_db(...)
+    create_new_endorsement_db --> View: endorsement
+else _endorsement_date > cancellation_date
+    View -> View: Set endorsement = None, message, statusCode = 0
+end
+
+View -> Client: Response({endorsement, message, status})
+@enduml

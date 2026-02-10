@@ -1,0 +1,13 @@
+@startuml
+actor Client
+participant "views.get_all_market_companies" as View
+participant "quotedboperations.get_all_market_companies_db" as DB
+participant "rest_framework.Response" as Response
+
+Client -> View: GET /get_all_market_companies
+View -> DB: get_all_market_companies_db()
+DB --> View: market companies list
+View -> View: Build data dict
+View -> Response: Response(data, status=200)
+Response --> Client: JSON response
+@enduml

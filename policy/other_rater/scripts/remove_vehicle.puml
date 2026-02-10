@@ -1,0 +1,11 @@
+@startuml
+actor Client
+participant "remove_vehicle" as View
+participant "remove_vehicle_data"
+
+Client -> View: POST /deletevehicle
+View -> View: Parse request body (vehicle_id, quote_id, endorsment_status)
+View -> remove_vehicle_data: remove_vehicle_data(_vehicle_id, _quote_id, _endorsment_status)
+remove_vehicle_data --> View: id
+View -> Client: Response({vehicle_id: id})
+@enduml

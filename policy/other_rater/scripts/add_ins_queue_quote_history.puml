@@ -1,0 +1,16 @@
+@startuml
+actor User
+participant "add_ins_queue_quote_history (API View)" as View
+participant "add_ins_queue_quote_history_db" as AddQueueHistory
+
+User -> View: POST /add_ins_queue_quote_history
+View -> View: Parse request.body (JSON)
+View: Prepare parameters (quote_id, from_user_id, assigned_handler_id, queue_changed_id)
+View -> AddQueueHistory: add_ins_queue_quote_history_db(quote_id, from_user_id, assigned_handler_id, queue_changed_id)
+AddQueueHistory --> View: result
+View: Build response dict
+View --> User: Response (message)
+alt Exception
+    View --> User: Response (HTTP 500)
+end
+@enduml

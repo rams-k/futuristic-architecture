@@ -1,0 +1,66 @@
+@startuml
+actor Client
+participant "cancel_endorsement" as View
+participant "add_quotes_json_data_with_endorsement_for_cancel"
+participant "get_quote_data_from_history"
+participant "get_quotes_json_data_by_id"
+participant "update_quote_estimate_json_by_id"
+participant "add_cancelled_endorsement"
+participant "get_prem_from_json_data"
+participant "update_endorsement_date_by_quote_id_and_endor_no"
+participant "update_quotes_json_submit_data_return_premium"
+participant "add_invoice_data_db"
+participant "udf_save_cancellation_and_reinstatment_info_db"
+participant "add_form_history"
+participant "generate_merged_pdf"
+participant "get_current_time_stamp"
+participant "upload_file_to_azure"
+participant "add_policy_quote_document"
+participant "update_quote_json_document_id"
+
+Client -> View: POST /cancelEndorsements
+View -> View: Parse request body
+loop For each calculation_data
+    View -> View: Build quote_premium, premium_data, premium_data_fee
+end
+View -> add_quotes_json_data_with_endorsement_for_cancel: add_quotes_json_data_with_endorsement_for_cancel(_quote_id)
+add_quotes_json_data_with_endorsement_for_cancel --> View: end_num
+View -> get_quote_data_from_history: get_quote_data_from_history(_quote_id)
+get_quote_data_from_history --> View: quote_json_data
+View -> get_quotes_json_data_by_id: get_quotes_json_data_by_id(end_num['id'])
+get_quotes_json_data_by_id --> View: quote_data
+
+View -> update_quote_estimate_json_by_id: update_quote_estimate_json_by_id(end_num['id'], ...)
+View -> add_cancelled_endorsement: add_cancelled_endorsement(_quote_id, policy_number, end_num['endorsement_number'], user_id)
+add_cancelled_endorsement --> View: quote_endorse_id
+
+View -> get_prem_from_json_data: get_prem_from_json_data(quote_id, endorsement_number)
+get_prem_from_json_data --> View: prev_premium
+
+View -> update_endorsement_date_by_quote_id_and_endor_no: update_endorsement_date_by_quote_id_and_endor_no(...)
+View -> update_quotes_json_submit_data_return_premium: update_quotes_json_submit_data_return_premium(json_history_id, ...)
+View -> add_invoice_data_db: add_invoice_data_db(invoice_id, quote_id, policy_number, ..., endorsement_number, transaction_type_id, is_premium_generated, json_history_id, invoice_number)
+
+opt Save cancellation/reinstatement info
+    View -> udf_save_cancellation_and_reinstatment_info_db: udf_save_cancellation_and_reinstatment_info_db(json_history_id, invoice_id, transaction_calculation_json)
+end
+
+View -> add_form_history: add_form_history(quote_id, json_history_id, doc_ids)
+
+alt cancellation_forms present
+    View -> get_quote_data_from_history: get_quote_data_from_history(_quote_id)
+    View -> generate_merged_pdf: generate_merged_pdf(cancellation_forms, quote_json_data)
+    generate_merged_pdf --> View: file_path
+    View -> get_current_time_stamp: get_current_time_stamp()
+    get_current_time_stamp --> View: timestamp
+    View -> upload_file_to_azure: upload_file_to_azure(file_name, file_path)
+    upload_file_to_azure --> View: u_res
+    alt u_res['status'] is True
+        View -> add_policy_quote_document: add_policy_quote_document(...)
+        add_policy_quote_document --> View: document_id
+        View -> update_quote_json_document_id: update_quote_json_document_id(quote_id, json_history_id, document_id)
+    end
+end
+
+View -> Client: Response(res)
+@enduml
